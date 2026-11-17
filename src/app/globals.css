@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 45 43% 96%;
+    --foreground: 218 47% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 218 47% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 47% 12%;
+    --primary: 173 79% 27%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 42% 92%;
+    --secondary-foreground: 218 47% 12%;
+    --muted: 45 30% 93%;
+    --muted-foreground: 218 14% 40%;
+    --accent: 171 61% 92%;
+    --accent-foreground: 173 79% 20%;
+    --destructive: 350 76% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 43 25% 87%;
+    --input: 43 25% 84%;
+    --ring: 173 79% 27%;
+    --radius: 1.25rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01" on, "cv11" on;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-bold tracking-tight text-brand-ink;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: #c6ece4;
+    color: #101b2d;
+  }
+
+  :focus-visible {
+    outline: 2px solid #0f7e70;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-6xl px-4 pb-28 pt-4 sm:px-6 lg:pb-16 lg:pt-8;
+  }
+
+  .section-card {
+    @apply rounded-3xl border border-white/80 bg-white shadow-card;
+  }
+
+  .pattern-soft {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(16, 27, 45, 0.055) 1px,
+      transparent 0
+    );
+    background-size: 22px 22px;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .gradient-cream {
+    background:
+      radial-gradient(ellipse at 8% 0%, rgba(221, 244, 238, 0.9), transparent 48%),
+      radial-gradient(ellipse at 100% 0%, rgba(252, 243, 200, 0.65), transparent 44%),
+      #fbf8ef;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-jakarta), system-ui, sans-serif;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .highlight-flag {
+    background: linear-gradient(
+      transparent 35%,
+      rgba(252, 211, 213, 0.9) 35%,
+      rgba(252, 211, 213, 0.9) 92%,
+      transparent 92%
+    );
+    border-radius: 0.15rem;
+    padding: 0 0.1rem;
+    color: #b91c2d;
+    font-weight: 600;
+  }
+
+  .highlight-flag-dark {
+    background: #be123c;
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.05rem 0.45rem;
+    font-weight: 700;
+  }
+}

@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: waspadain-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: waspadain
+      POSTGRES_PASSWORD: waspadain
+      POSTGRES_DB: waspadain
+    ports:
+      - "5432:5432"
+    volumes:
+      - waspadain_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waspadain -d waspadain"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: waspadain-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://waspadain:waspadain@db:5432/waspadain?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:-ganti-dengan-secret-acak-minimal-32-karakter-aman}
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+
+volumes:
+  waspadain_pgdata:

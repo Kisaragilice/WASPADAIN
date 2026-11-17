@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Channel {
+  WHATSAPP
+  SMS
+  EMAIL
+  BROWSER
+}
+
+enum Difficulty {
+  MUDAH
+  SEDANG
+  SULIT
+}
+
+enum AssessmentType {
+  PRE
+  POST
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum SimOutcome {
+  SAFE
+  VULNERABLE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  xp           Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions      Session[]
+  attempts      SimulationAttempt[]
+  assessments   Assessment[]
+  badges        UserBadge[]
+  moduleProgress ModuleProgress[]
+  reflexAttempts ReflexAttempt[]
+
+  @@index([createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Scenario {
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  title            String
+  subtitle         String
+  description      String
+  channel          Channel
+  category         String
+  difficulty       Difficulty @default(MUDAH)
+  level            Int        @default(1)
+  estimatedMinutes Int        @default(5)
+  badgeKey         String?
+  variantCount     Int        @default(1)
+  sortOrder        Int        @default(0)
+  isPublished      Boolean    @default(true)
+  config           Json
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  attempts SimulationAttempt[]
+  badges   UserBadge[]
+
+  @@index([channel, isPublished])
+  @@index([sortOrder])
+}
+
+model SimulationAttempt {
+  id                  String       @id @default(cuid())
+  userId              String
+  scenarioId          String
+  variantIndex        Int          @default(0)
+  status              AttemptStatus @default(IN_PROGRESS)
+  currentSceneId      String?
+  outcome             SimOutcome?
+  score               Int          @default(0)
+  xpEarned            Int          @default(0)
+  redFlagsIdentified  Int          @default(0)
+  redFlagsTotal       Int          @default(0)
+  vulnerableCategories Json?
+  startedAt           DateTime     @default(now())
+  completedAt         DateTime?
+  updatedAt           DateTime     @updatedAt
+
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario  Scenario             @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  responses SimulationResponse[]
+
+  @@index([userId, status])
+  @@index([scenarioId, status])
+  @@index([completedAt])
+}
+
+model SimulationResponse {
+  id        String      @id @default(cuid())
+  attemptId String
+  sceneId   String
+  actionId  String
+  label     String
+  verdict   SimOutcome
+  createdAt DateTime    @default(now())
+
+  attempt SimulationAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+}
+
+model Assessment {
+  id        String         @id @default(cuid())
+  userId    String
+  type      AssessmentType
+  answers   Json
+  knowledge Int
+  attitude  Int
+  behavior  Int
+  kabIndex  Int
+  createdAt DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, createdAt])
+}
+
+model UserBadge {
+  id         String   @id @default(cuid())
+  userId     String
+  badgeKey   String
+  scenarioId String?
+  awardedAt  DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario Scenario? @relation(fields: [scenarioId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, badgeKey])
+  @@index([userId])
+}
+
+model EducationModule {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  summary       String
+  order         Int
+  readingMinutes Int
+  sections      Json
+  isPublished   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  progress ModuleProgress[]
+
+  @@index([order])
+}
+
+model ModuleProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  moduleId   String
+  completedAt DateTime @default(now())
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module EducationModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+  @@index([userId])
+}
+
+model ReflexAttempt {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  choiceId   String
+  isCorrect  Boolean
+  xpEarned   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
