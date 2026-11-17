@@ -172,16 +172,15 @@ export function ProfilePasswordForm() {
 }
 
 export function LogoutButton() {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
 
   const logout = async () => {
     setPending(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error("Logout gagal");
       toast.success("Kamu sudah keluar.");
-      router.push("/");
-      router.refresh();
+      window.location.assign("/");
     } catch {
       toast.error("Gagal keluar. Coba lagi.");
       setPending(false);

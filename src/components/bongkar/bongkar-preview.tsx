@@ -41,7 +41,7 @@ export function BongkarPreview({
       return false;
     });
     return (
-      <div className={cn("rounded-3xl border border-brand-ink/[0.06] bg-white p-3 shadow-sm", className)}>
+      <div className={cn("overflow-hidden rounded-3xl border border-brand-ink/[0.06] bg-white p-3 shadow-sm", className)}>
         <div className="flex items-center gap-2 rounded-2xl bg-[#F4F7FB] px-3 py-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-lavender text-[#4C56A3]">
             <Landmark className="h-4 w-4" />
@@ -68,7 +68,7 @@ export function BongkarPreview({
 
   if (scene.type === "sms") {
     return (
-      <div className={cn("rounded-3xl border border-brand-ink/[0.06] bg-white p-3 shadow-sm", className)}>
+      <div className={cn("overflow-hidden rounded-3xl border border-brand-ink/[0.06] bg-white p-3 shadow-sm", className)}>
         <div className="flex items-center gap-2 border-b border-brand-ink/[0.06] pb-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DCE7F7] text-[#1D4E89]">
             <Landmark className="h-4 w-4" />
@@ -84,7 +84,7 @@ export function BongkarPreview({
             .filter((message) => message.kind === "incoming")
             .map((message, index) =>
               message.kind === "incoming" ? (
-                <p key={index} className="whitespace-pre-line text-[10.5px] leading-relaxed text-brand-ink/80">
+                <p key={index} className="whitespace-pre-line break-words text-[10.5px] leading-relaxed text-brand-ink/80">
                   <HighlightedText text={message.text} terms={highlights} />
                 </p>
               ) : null,
@@ -97,7 +97,7 @@ export function BongkarPreview({
 
   if (scene.type === "email") {
     return (
-      <div className={cn("rounded-3xl border border-brand-ink/[0.06] bg-white p-3 shadow-sm", className)}>
+      <div className={cn("overflow-hidden rounded-3xl border border-brand-ink/[0.06] bg-white p-3 shadow-sm", className)}>
         <div className="flex items-center justify-between gap-2 border-b border-brand-ink/[0.06] pb-2">
           <p className="flex items-center gap-1.5 text-[9px] font-bold text-brand-ink/50">
             <Mail className="h-3 w-3" /> Kotak masuk · {scene.time}
@@ -234,7 +234,7 @@ function ChatPreviewBubble({
   if (message.kind === "incoming") {
     return (
       <div className="rounded-xl bg-[#F4F7FB] p-2.5">
-        <p className="whitespace-pre-line text-[10px] leading-relaxed text-brand-ink/80">
+        <p className="whitespace-pre-line break-words text-[10px] leading-relaxed text-brand-ink/80">
           <HighlightedText text={message.text} terms={highlights} />
         </p>
       </div>

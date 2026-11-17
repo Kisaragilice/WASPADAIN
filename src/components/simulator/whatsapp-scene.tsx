@@ -129,7 +129,7 @@ function MessageBubble({
     <div className={cn("my-1.5 flex", outgoing ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "max-w-[86%] whitespace-pre-line rounded-2xl px-3 py-2 text-[11.5px] leading-relaxed shadow-sm",
+          "max-w-[86%] break-words whitespace-pre-line rounded-2xl px-3 py-2 text-[11.5px] leading-relaxed shadow-sm",
           outgoing
             ? "rounded-br-md bg-[#DDF4EE] text-brand-ink"
             : "rounded-bl-md bg-white text-brand-ink",

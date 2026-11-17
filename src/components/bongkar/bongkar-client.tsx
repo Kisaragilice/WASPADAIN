@@ -156,7 +156,7 @@ export function BongkarClient({
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:items-start">
-        <div className="lg:sticky lg:top-24">
+        <div className="min-w-0 lg:sticky lg:top-24">
           <div className="mb-2 flex items-center justify-between gap-2">
             <Badge variant={outcome === "SAFE" ? "safe" : "danger"}>
               {outcome === "SAFE" ? "Vonis: Aman" : "Vonis: Rentan"}
@@ -189,7 +189,7 @@ export function BongkarClient({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -12 }}
             transition={{ duration: 0.22 }}
-            className="rounded-3xl border border-white bg-white p-4 shadow-card sm:p-5"
+            className="min-w-0 rounded-3xl border border-white bg-white p-4 shadow-card sm:p-5"
           >
             <div className="space-y-4">
               {flags.map((flag) =>

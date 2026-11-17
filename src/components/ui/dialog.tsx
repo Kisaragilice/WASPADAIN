@@ -40,8 +40,12 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-full p-2 text-brand-ink/60 transition hover:bg-brand-ink/5 hover:text-brand-ink">
-        <X className="h-4 w-4" />
+      <DialogPrimitive.Close
+        type="button"
+        aria-label="Tutup dialog"
+        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-brand-ink/60 transition hover:bg-brand-ink/5 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <X className="h-5 w-5" />
         <span className="sr-only">Tutup</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

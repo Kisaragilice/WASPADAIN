@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Eye,
@@ -21,7 +20,6 @@ import { Label } from "@/components/ui/label";
 type Mode = "login" | "register";
 
 export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
-  const router = useRouter();
   const isRegister = mode === "register";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -52,30 +50,38 @@ export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
       const response = await fetch(isRegister ? "/api/auth/register" : "/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
         body: JSON.stringify(
           isRegister
             ? { name: name.trim(), email: email.trim(), password }
             : { email: email.trim(), password },
         ),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         setError(data.error ?? "Terjadi kesalahan. Coba lagi.");
+        setPending(false);
         return;
       }
 
       toast.success(
-        isRegister ? "Akun dibuat. Selamat datang!" : `Selamat datang kembali, ${data.user?.name ?? "Warga"}.`,
+        isRegister
+          ? "Akun dibuat. Selamat datang!"
+          : `Selamat datang kembali, ${data.user?.name ?? "Warga"}.`,
       );
       const target =
         next && next.startsWith("/") && !next.startsWith("//")
           ? next
           : (data.redirectTo ?? "/simulasi");
-      router.push(target);
-      router.refresh();
+
+      // A hard navigation is deliberate: it avoids the App Router race where
+      // push() + refresh() can be cancelled, and it guarantees the new session
+      // cookie is seen by the protected layout. The button stays disabled while
+      // the page loads so a second tap cannot fire a duplicate login.
+      window.location.assign(target);
     } catch {
       setError("Koneksi bermasalah. Periksa jaringan lalu coba lagi.");
-    } finally {
       setPending(false);
     }
   };

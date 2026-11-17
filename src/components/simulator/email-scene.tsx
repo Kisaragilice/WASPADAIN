@@ -117,7 +117,7 @@ export function EmailThread({
             }
             if (block.type === "signature") {
               return (
-                <p key={index} className="whitespace-pre-line pt-2 text-[10.5px] leading-relaxed text-brand-ink/55">
+                <p key={index} className="whitespace-pre-line break-words pt-2 text-[10.5px] leading-relaxed text-brand-ink/55">
                   {block.text}
                 </p>
               );

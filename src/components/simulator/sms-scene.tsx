@@ -17,7 +17,7 @@ import type { ChatMessage, SmsScene } from "@/lib/scenario/types";
 function Linkified({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
   return (
-    <span className="whitespace-pre-line">
+    <span className="whitespace-pre-line break-words">
       {parts.map((part, index) =>
         part.startsWith("http") ? (
           <span

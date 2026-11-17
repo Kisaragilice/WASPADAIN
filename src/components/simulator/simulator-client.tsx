@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -69,6 +69,12 @@ export function SimulatorClient({
   const ChannelIcon = channelMeta.icon;
   const tip =
     scene?.type === "phone-home" && scene.tip ? scene.tip : null;
+  const [dismissedResult, setDismissedResult] = useState(false);
+  const showResultDialog = completed && !dismissedResult;
+
+  useEffect(() => {
+    if (!completed) setDismissedResult(false);
+  }, [completed]);
 
   useEffect(() => {
     store.init({
@@ -152,7 +158,78 @@ export function SimulatorClient({
             </div>
           ) : null}
 
-          {scene ? (
+          {completed && result ? (
+            <div className="rounded-3xl border border-white bg-white p-5 shadow-card">
+              <div className="flex items-start gap-3">
+                <span
+                  className={cn(
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
+                    result.outcome === "SAFE"
+                      ? "bg-brand-mint text-primary"
+                      : "bg-brand-blush text-[#B91C2D]",
+                  )}
+                >
+                  {result.outcome === "SAFE" ? (
+                    <ShieldCheck className="h-6 w-6" />
+                  ) : (
+                    <TriangleAlert className="h-6 w-6" />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-extrabold leading-tight">
+                    {result.outcome === "SAFE"
+                      ? "Aman! Simulasi selesai."
+                      : "Simulasi selesai — saatnya belajar."}
+                  </p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-brand-ink/60">
+                    {result.feedback}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="rounded-2xl bg-brand-cream p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/40">
+                    Skor
+                  </p>
+                  <p className="text-xl font-extrabold">{result.score}</p>
+                </div>
+                <div className="rounded-2xl bg-brand-cream p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/40">
+                    XP diperoleh
+                  </p>
+                  <p className="text-xl font-extrabold">+{result.xpEarned}</p>
+                </div>
+              </div>
+
+              {result.newBadges.length ? (
+                <div className="mt-2 rounded-2xl bg-brand-butter/70 p-3 text-center text-[11px] font-semibold text-[#6C5200]">
+                  Lencana baru:{" "}
+                  {result.newBadges
+                    .map((key) => getBadge(key)?.name ?? key)
+                    .join(", ")}
+                </div>
+              ) : null}
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <Button asChild size="lg" className="w-full">
+                  <Link href={`/simulasi/${slug}/bongkar/${attemptId}`}>
+                    Bongkar modus penipuan <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={`/hasil/${attemptId}`}>Lihat hasil ringkas</Link>
+                </Button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDismissedResult(false)}
+                className="mt-2 w-full text-center text-[10.5px] font-semibold text-brand-ink/45 underline-offset-2 hover:underline"
+              >
+                Buka lagi ringkasan hasil
+              </button>
+            </div>
+          ) : scene ? (
             <SceneView
               scene={scene}
               slug={slug}
@@ -264,12 +341,13 @@ export function SimulatorClient({
         </aside>
       </div>
 
-      <Dialog open={completed}>
-        <DialogContent
-          className="max-w-md"
-          onInteractOutside={(event) => event.preventDefault()}
-          onEscapeKeyDown={(event) => event.preventDefault()}
-        >
+      <Dialog
+        open={showResultDialog}
+        onOpenChange={(open) => {
+          if (!open) setDismissedResult(true);
+        }}
+      >
+        <DialogContent className="max-h-[90dvh] w-[calc(100%-1.5rem)] max-w-md overflow-y-auto">
           <DialogHeader>
             <div
               className={cn(
@@ -325,6 +403,14 @@ export function SimulatorClient({
             </Button>
             <Button asChild variant="outline" className="w-full">
               <Link href={`/hasil/${attemptId}`}>Lihat hasil ringkas</Link>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-brand-ink/55"
+              onClick={() => setDismissedResult(true)}
+            >
+              Tutup ringkasan
             </Button>
           </div>
           <p className="text-center text-[10px] text-brand-ink/40">
