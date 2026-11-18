@@ -56,6 +56,7 @@ export const smsBankScenario: ScenarioSeed = {
               tone: "danger",
               next: "browser",
               verdict: "vulnerable",
+              categories: ["umpan_hadiah", "format_tautan", "tekanan_waktu"],
               feedback:
                 "Membuka tautan sudah cukup untuk masuk ke replika situs penipuan. Domain {{domain}} bukan domain resmi bank.",
             },
@@ -137,6 +138,7 @@ export const smsBankScenario: ScenarioSeed = {
               tone: "danger",
               next: null,
               verdict: "vulnerable",
+              categories: ["data_rahasia"],
               feedback:
                 "PIN dan OTP adalah kunci transfer keluar. Tidak ada pencairan hadiah yang membutuhkannya.",
             },

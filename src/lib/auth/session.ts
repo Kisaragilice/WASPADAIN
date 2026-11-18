@@ -1,36 +1,47 @@
 import "server-only";
 
-import { createHmac, randomBytes } from "crypto";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Role, User } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { sessionCookieName, passwordChangeCookieName } from "@/lib/auth/cookie";
+import { createOpaqueToken, hashOpaqueToken } from "@/lib/auth/token";
 
-const COOKIE_NAME = "waspadain_session";
 const SESSION_DAYS = 7;
 
-function authSecret() {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 16) {
-    throw new Error("AUTH_SECRET wajib diisi minimal 16 karakter.");
-  }
-  return secret;
-}
+const COOKIE_NAME = sessionCookieName();
 
-function hashToken(token: string) {
-  return createHmac("sha256", authSecret()).update(token).digest("hex");
-}
+export type SafeUser = Pick<
+  User,
+  "id" | "name" | "email" | "role" | "xp" | "mustChangePassword" | "createdAt"
+>;
 
-export type SafeUser = Pick<User, "id" | "name" | "email" | "role" | "xp" | "createdAt">;
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    priority: "high" as const,
+  };
+}
 
 export async function createUserSession(userId: string) {
-  const token = randomBytes(32).toString("hex");
+  const token = createOpaqueToken(32);
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
+
+  // Opportunistic cleanup keeps expired rows from accumulating without a
+  // separate scheduler. It also prunes old rate-limit windows.
+  const now = new Date();
+  await Promise.all([
+    prisma.session.deleteMany({ where: { expiresAt: { lt: now } } }),
+    prisma.rateLimit.deleteMany({ where: { resetAt: { lt: now } } }),
+  ]);
 
   await prisma.session.create({
     data: {
-      tokenHash: hashToken(token),
+      tokenHash: hashOpaqueToken(token),
       userId,
       expiresAt,
     },
@@ -38,11 +49,8 @@ export async function createUserSession(userId: string) {
 
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    ...cookieOptions(),
     expires: expiresAt,
-    path: "/",
   });
 }
 
@@ -50,14 +58,48 @@ export async function destroySession() {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (token) {
-    await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
+    await prisma.session.deleteMany({
+      where: { tokenHash: hashOpaqueToken(token) },
+    });
   }
   cookieStore.set(COOKIE_NAME, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    ...cookieOptions(),
     maxAge: 0,
-    path: "/",
+  });
+  cookieStore.set(passwordChangeCookieName(), "", {
+    ...cookieOptions(),
+    maxAge: 0,
+  });
+}
+
+export async function setPasswordChangePending() {
+  const cookieStore = await cookies();
+  cookieStore.set(passwordChangeCookieName(), "1", {
+    ...cookieOptions(),
+    maxAge: 60 * 60,
+  });
+}
+
+export async function clearPasswordChangePending() {
+  const cookieStore = await cookies();
+  cookieStore.set(passwordChangeCookieName(), "", {
+    ...cookieOptions(),
+    maxAge: 0,
+  });
+}
+
+/** Revokes every session, including the current one. */
+export async function revokeAllSessions(userId: string) {
+  return prisma.session.deleteMany({ where: { userId } });
+}
+
+/** Revokes all sessions except the token in the current request. */
+export async function revokeOtherSessions(userId: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (!token) return revokeAllSessions(userId);
+  return prisma.session.deleteMany({
+    where: { userId, tokenHash: { not: hashOpaqueToken(token) } },
   });
 }
 
@@ -67,7 +109,7 @@ export const getCurrentUser = cache(async (): Promise<SafeUser | null> => {
   if (!token) return null;
 
   const session = await prisma.session.findUnique({
-    where: { tokenHash: hashToken(token) },
+    where: { tokenHash: hashOpaqueToken(token) },
     include: {
       user: {
         select: {
@@ -76,13 +118,18 @@ export const getCurrentUser = cache(async (): Promise<SafeUser | null> => {
           email: true,
           role: true,
           xp: true,
+          mustChangePassword: true,
           createdAt: true,
         },
       },
     },
   });
 
-  if (!session || session.expiresAt < new Date()) {
+  if (!session) return null;
+  if (session.expiresAt < new Date()) {
+    await prisma.session
+      .deleteMany({ where: { id: session.id } })
+      .catch(() => null);
     return null;
   }
 

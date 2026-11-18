@@ -73,19 +73,19 @@ export function BrowserSite({
       <div className="bg-[#EEF2F8] px-2.5 pb-2 pt-2">
         <div className="flex items-center gap-1.5">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm">
-            <span className="text-[10px] text-brand-ink/50">‹</span>
+            <span className="text-[10px] text-brand-ink/60">‹</span>
           </span>
           <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm">
             <Lock className="h-3 w-3 shrink-0 text-emerald-600" />
-            <span className="truncate text-[9px] font-medium text-brand-ink/60">
+            <span className="truncate text-[9px] font-medium text-brand-ink/65">
               <HighlightedText text={scene.url} terms={highlights} markClassName="highlight-flag" />
             </span>
-            <RefreshCw className="ml-auto h-3 w-3 shrink-0 text-brand-ink/35" />
+            <RefreshCw className="ml-auto h-3 w-3 shrink-0 text-brand-ink/50" />
           </div>
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[10px] font-bold text-brand-ink/55 shadow-sm">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[10px] font-bold text-brand-ink/65 shadow-sm">
             2
           </span>
-          <MoreVertical className="h-4 w-4 text-brand-ink/40" />
+          <MoreVertical className="h-4 w-4 text-brand-ink/55" />
         </div>
       </div>
 
@@ -112,12 +112,12 @@ export function BrowserSite({
             <p className="text-[12px] font-black uppercase leading-tight tracking-wide text-brand-ink">
               {scene.brand.name}
             </p>
-            <p className="text-[8px] font-semibold uppercase tracking-wider text-brand-ink/45">
+            <p className="text-[8px] font-semibold uppercase tracking-wider text-brand-ink/55">
               {scene.brand.tagline}
             </p>
           </div>
           {scene.brand.badge ? (
-            <span className="rounded-full bg-white px-2 py-1 text-[8px] font-bold text-brand-ink/55">
+            <span className="rounded-full bg-white px-2 py-1 text-[8px] font-bold text-brand-ink/65">
               {scene.brand.badge}
             </span>
           ) : null}
@@ -133,7 +133,7 @@ export function BrowserSite({
           <h2 className="mt-2.5 text-[20px] font-extrabold leading-tight text-brand-ink">
             {scene.pageTitle}
           </h2>
-          <p className="mt-1.5 text-[11px] leading-relaxed text-brand-ink/60">{scene.intro}</p>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-brand-ink/65">{scene.intro}</p>
 
           {scene.timer ? (
             <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#FCF3C8] px-3 py-2.5">
@@ -188,9 +188,9 @@ export function BrowserSite({
                       <p className="truncate text-[10px] font-bold text-brand-ink/80">
                         {field.value}
                       </p>
-                      <p className="text-[8px] text-brand-ink/40">Ukuran maksimal 10MB</p>
+                      <p className="text-[8px] text-brand-ink/55">Ukuran maksimal 10MB</p>
                     </div>
-                    <Upload className="ml-auto h-3.5 w-3.5 text-brand-ink/35" />
+                    <Upload className="ml-auto h-3.5 w-3.5 text-brand-ink/50" />
                   </div>
                 ) : (
                   <div
@@ -202,9 +202,9 @@ export function BrowserSite({
                     )}
                   >
                     {field.kind === "password" ? (
-                      <KeyRound className="h-3.5 w-3.5 shrink-0 text-brand-ink/35" />
+                      <KeyRound className="h-3.5 w-3.5 shrink-0 text-brand-ink/50" />
                     ) : field.kind === "qr" ? (
-                      <FileText className="h-3.5 w-3.5 shrink-0 text-brand-ink/35" />
+                      <FileText className="h-3.5 w-3.5 shrink-0 text-brand-ink/50" />
                     ) : (
                       <CreditCard className="h-3.5 w-3.5 shrink-0 text-brand-ink/30" />
                     )}
@@ -212,7 +212,7 @@ export function BrowserSite({
                       className={cn(
                         "min-w-0 flex-1 truncate",
                         field.value.includes("Masukkan")
-                          ? "text-brand-ink/35"
+                          ? "text-brand-ink/50"
                           : "font-medium text-brand-ink/75",
                       )}
                     >
@@ -221,7 +221,7 @@ export function BrowserSite({
                   </div>
                 )}
                 {field.hint ? (
-                  <p className="mt-1 text-[8.5px] leading-relaxed text-brand-ink/40">
+                  <p className="mt-1 text-[8.5px] leading-relaxed text-brand-ink/55">
                     {field.hint}
                   </p>
                 ) : null}
@@ -233,12 +233,12 @@ export function BrowserSite({
             {scene.primaryCta} →
           </div>
           {scene.footnote ? (
-            <p className="mt-2.5 text-center text-[8px] text-brand-ink/35">{scene.footnote}</p>
+            <p className="mt-2.5 text-center text-[8px] text-brand-ink/50">{scene.footnote}</p>
           ) : null}
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/55">
+      <div className="flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/70">
         <ShieldAlert className="h-3 w-3 text-amber-300" />
         {scene.simLabel ?? "Ini di dalam ruang simulasi"}
       </div>

@@ -47,11 +47,11 @@ export function ScenarioCard({
             {scenario.title}
           </h3>
           {!compact ? (
-            <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-brand-ink/55">
+            <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-brand-ink/65">
               {scenario.description}
             </p>
           ) : null}
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-brand-ink/45">
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-brand-ink/55">
             <span className="inline-flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> {scenario.variantCount} variasi
             </span>

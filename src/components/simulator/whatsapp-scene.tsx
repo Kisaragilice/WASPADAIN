@@ -45,7 +45,7 @@ function MessageBubble({
   if (message.kind === "date") {
     return (
       <div className="my-2 flex justify-center">
-        <span className="rounded-md bg-white/75 px-3 py-1 text-[9px] font-bold uppercase tracking-wide text-brand-ink/45 shadow-sm">
+        <span className="rounded-md bg-white/75 px-3 py-1 text-[9px] font-bold uppercase tracking-wide text-brand-ink/55 shadow-sm">
           {message.label}
         </span>
       </div>
@@ -80,7 +80,7 @@ function MessageBubble({
             <p className="truncate text-[11.5px] font-bold text-brand-ink">
               {message.fileName}
             </p>
-            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[9px] font-medium text-brand-ink/50">
+            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[9px] font-medium text-brand-ink/60">
               {message.fileSize}
               {message.danger ? (
                 <span className="font-bold uppercase text-[#D2153B]">· Aplikasi berbahaya</span>
@@ -96,7 +96,7 @@ function MessageBubble({
             <HighlightedText text={message.note} terms={highlights} />
           </p>
         ) : null}
-        <p className="mt-1 text-right text-[8px] text-brand-ink/35">{message.time}</p>
+        <p className="mt-1 text-right text-[8px] text-brand-ink/50">{message.time}</p>
       </div>
     );
   }
@@ -119,7 +119,7 @@ function MessageBubble({
             ))}
           </div>
         </div>
-        <p className="px-1 pt-1.5 text-[10px] font-medium text-brand-ink/60">{message.caption}</p>
+        <p className="px-1 pt-1.5 text-[10px] font-medium text-brand-ink/65">{message.caption}</p>
       </div>
     );
   }
@@ -136,7 +136,7 @@ function MessageBubble({
         )}
       >
         <HighlightedText text={message.text} terms={highlights} />
-        <div className="mt-1 flex items-center justify-end gap-1 text-[8px] text-brand-ink/35">
+        <div className="mt-1 flex items-center justify-end gap-1 text-[8px] text-brand-ink/50">
           {message.time}
           {outgoing ? <span className="text-[#53BDEB]">✓✓</span> : null}
         </div>
@@ -167,7 +167,7 @@ export function WhatsAppThread({
             <p className="flex items-center gap-1 truncate text-[12.5px] font-extrabold text-brand-ink">
               {scene.contact.name}
             </p>
-            <p className="truncate text-[9.5px] text-brand-ink/50">{scene.contact.subtitle}</p>
+            <p className="truncate text-[9.5px] text-brand-ink/60">{scene.contact.subtitle}</p>
           </div>
           <Video className="h-5 w-5 text-[#0F7E70]" />
           <Phone className="h-4 w-4 text-[#0F7E70]" />
@@ -187,11 +187,11 @@ export function WhatsAppThread({
         }}
       >
         {scene.encryptionNote ? (
-          <div className="mx-auto my-2 w-fit rounded-lg bg-white/75 px-3 py-1.5 text-center text-[9px] text-brand-ink/50 shadow-sm">
+          <div className="mx-auto my-2 w-fit rounded-lg bg-white/75 px-3 py-1.5 text-center text-[9px] text-brand-ink/60 shadow-sm">
             {scene.encryptionNote}
           </div>
         ) : null}
-        <div className="my-2 flex gap-2 rounded-xl bg-white/75 px-3 py-2.5 text-[10px] text-brand-ink/60 shadow-sm">
+        <div className="my-2 flex gap-2 rounded-xl bg-white/75 px-3 py-2.5 text-[10px] text-brand-ink/65 shadow-sm">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-lavender">
             <AlertTriangle className="h-3.5 w-3.5 text-[#4C56A3]" />
           </span>
@@ -206,7 +206,7 @@ export function WhatsAppThread({
       </div>
 
       <div className="flex items-center gap-1.5 bg-[#F7F3EC] px-2 py-2">
-        <span className="flex flex-1 items-center gap-2 rounded-full bg-white px-3 py-2 text-[10px] text-brand-ink/40 shadow-sm">
+        <span className="flex flex-1 items-center gap-2 rounded-full bg-white px-3 py-2 text-[10px] text-brand-ink/55 shadow-sm">
           <Smile className="h-4 w-4" />
           <span className="truncate">{scene.composer ?? "Ketik pesan..."}</span>
           <Paperclip className="ml-auto h-4 w-4" />
@@ -217,7 +217,7 @@ export function WhatsAppThread({
         </span>
       </div>
 
-      <div className="flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/55">
+      <div className="flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/70">
         <ShieldAlert className="h-3 w-3 text-amber-300" />
         Ini ruang simulasi aman. Jangan masukkan data asli.
       </div>

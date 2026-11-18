@@ -29,7 +29,7 @@ export function EmailThread({
     <div className="min-h-[600px] bg-white">
       <div className="border-b border-brand-ink/[0.06] bg-[#F7F9FC]">
         <StatusBar />
-        <div className="flex items-center justify-between px-3 pb-2 text-brand-ink/55">
+        <div className="flex items-center justify-between px-3 pb-2 text-brand-ink/65">
           <div className="flex items-center gap-3">
             <ArrowLeft className="h-5 w-5" />
             <Archive className="h-4 w-4" />
@@ -55,7 +55,7 @@ export function EmailThread({
           <Star className="mt-0.5 h-4 w-4 shrink-0 text-brand-ink/30" />
         </div>
         <div className="mt-2 flex items-center gap-2">
-          <span className="rounded-full bg-[#EEF3FB] px-2 py-0.5 text-[9px] font-semibold text-brand-ink/55">
+          <span className="rounded-full bg-[#EEF3FB] px-2 py-0.5 text-[9px] font-semibold text-brand-ink/65">
             Kotak Masuk
           </span>
           <span className="rounded-full bg-[#FFF1F2] px-2 py-0.5 text-[9px] font-bold text-[#D2153B]">
@@ -75,16 +75,16 @@ export function EmailThread({
                   {scene.senderFlag}
                 </span>
               ) : null}
-              <span className="ml-auto text-[9px] text-brand-ink/40">{scene.time}</span>
+              <span className="ml-auto text-[9px] text-brand-ink/55">{scene.time}</span>
             </div>
-            <p className="mt-0.5 break-all text-[10px] text-brand-ink/55">
+            <p className="mt-0.5 break-all text-[10px] text-brand-ink/65">
               <HighlightedText
                 text={scene.fromAddress}
                 terms={highlights}
                 markClassName="highlight-flag"
               />
             </p>
-            <p className="mt-0.5 flex items-center gap-1 text-[9.5px] text-brand-ink/40">
+            <p className="mt-0.5 flex items-center gap-1 text-[9.5px] text-brand-ink/55">
               kepada {scene.to} <ChevronDown className="h-3 w-3" />
             </p>
           </div>
@@ -117,7 +117,7 @@ export function EmailThread({
             }
             if (block.type === "signature") {
               return (
-                <p key={index} className="whitespace-pre-line break-words pt-2 text-[10.5px] leading-relaxed text-brand-ink/55">
+                <p key={index} className="whitespace-pre-line break-words pt-2 text-[10.5px] leading-relaxed text-brand-ink/65">
                   {block.text}
                 </p>
               );
@@ -130,13 +130,13 @@ export function EmailThread({
           })}
         </div>
 
-        <div className="mt-4 flex items-center gap-2 border-t border-brand-ink/[0.07] pt-3 text-[10px] text-brand-ink/45">
+        <div className="mt-4 flex items-center gap-2 border-t border-brand-ink/[0.07] pt-3 text-[10px] text-brand-ink/55">
           <CornerUpLeft className="h-3.5 w-3.5" /> Balas
           <span className="ml-auto">waspadain.id/simulasi-email</span>
         </div>
       </div>
 
-      <div className={cn("flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/55")}>
+      <div className={cn("flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/70")}>
         <ShieldAlert className="h-3 w-3 text-amber-300" />
         Ruang simulasi · email dan alamat bersifat sintetis
       </div>

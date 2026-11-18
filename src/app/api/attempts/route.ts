@@ -4,10 +4,18 @@ import { apiError, parseBody } from "@/lib/api";
 import { attemptCreateSchema } from "@/lib/validators";
 import { getCurrentUser } from "@/lib/auth/session";
 import { startAttempt } from "@/lib/attempt";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) return apiError("Silakan masuk terlebih dahulu.", 401);
+
+  const limit = await checkRateLimit({
+    key: `attempt-start:${user.id}`,
+    limit: 40,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
 
   const parsed = await parseBody(request, attemptCreateSchema);
   if ("response" in parsed) return parsed.response;

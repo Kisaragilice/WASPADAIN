@@ -30,18 +30,18 @@ export function StatTile({
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-[11px] font-bold uppercase tracking-wide text-brand-ink/50">
+        <p className="truncate text-[11px] font-bold uppercase tracking-wide text-brand-ink/60">
           {label}
         </p>
-        {icon ? <span className="text-brand-ink/45">{icon}</span> : null}
+        {icon ? <span className="text-brand-ink/55">{icon}</span> : null}
       </div>
       <p className="mt-1 flex items-baseline gap-1 text-xl font-extrabold tracking-tight text-brand-ink sm:text-2xl">
         {value}
         {suffix ? (
-          <span className="text-xs font-semibold text-brand-ink/45">{suffix}</span>
+          <span className="text-xs font-semibold text-brand-ink/55">{suffix}</span>
         ) : null}
       </p>
-      {hint ? <p className="mt-0.5 truncate text-[11px] text-brand-ink/50">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 truncate text-[11px] text-brand-ink/60">{hint}</p> : null}
     </div>
   );
 }

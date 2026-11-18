@@ -39,12 +39,12 @@ export function BadgeGrid({ earned }: { earned: string[] }) {
               <p
                 className={cn(
                   "text-[10.5px] font-extrabold leading-tight",
-                  unlocked ? "text-brand-ink" : "text-brand-ink/45",
+                  unlocked ? "text-brand-ink" : "text-brand-ink/55",
                 )}
               >
                 {badge.name}
               </p>
-              <p className="mt-0.5 line-clamp-2 text-[8.5px] leading-snug text-brand-ink/40">
+              <p className="mt-0.5 line-clamp-2 text-[8.5px] leading-snug text-brand-ink/55">
                 {unlocked ? badge.description : badge.hint}
               </p>
             </div>

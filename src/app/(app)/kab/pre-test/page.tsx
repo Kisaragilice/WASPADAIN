@@ -83,7 +83,7 @@ export default async function PreTestPage({
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/60 px-3.5 py-3 text-[10px] text-brand-ink/45">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/60 px-3.5 py-3 text-[10px] text-brand-ink/55">
         <span>Gunakan data sintetis. Jangan menuliskan data pribadi asli.</span>
         <Link href="/kab" className="inline-flex items-center gap-1 font-bold text-primary">
           Tentang instrumen <ArrowRight className="h-3 w-3" />

@@ -69,6 +69,7 @@ export const emailTaxScenario: ScenarioSeed = {
               tone: "danger",
               next: "browser",
               verdict: "vulnerable",
+              categories: ["otoritas_palsu", "format_tautan", "tekanan_waktu"],
               feedback:
                 "Tautan membawa Anda ke replika portal pajak di domain {{domain}}, bukan situs resmi pemerintah.",
             },
@@ -149,6 +150,7 @@ export const emailTaxScenario: ScenarioSeed = {
               tone: "danger",
               next: null,
               verdict: "vulnerable",
+              categories: ["data_rahasia"],
               feedback:
                 "Nama ibu kandung dan selfie KTP adalah kunci emas untuk membobol m-banking dan pinjaman online.",
             },

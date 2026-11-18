@@ -104,8 +104,8 @@ export const BADGES: BadgeDefinition[] = [
   {
     key: "pelapor-cepat",
     name: "Pelapor Cepat",
-    description: "Memilih melapor dan memblokir pada percobaan pertama.",
-    hint: "Dapatkan hasil Aman pada simulasi pertama Anda.",
+    description: "Menyelesaikan minimal satu simulasi dengan hasil Aman.",
+    hint: "Raih hasil Aman pada simulasi mana pun — satu kesalahan awal tidak mengunci lencana ini.",
   },
   {
     key: "kab-tuntas",

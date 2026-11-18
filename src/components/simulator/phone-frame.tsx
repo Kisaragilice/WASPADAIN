@@ -46,7 +46,7 @@ export function PhoneFrame({
         ) : null}
       </div>
       {showSimChrome ? (
-        <p className="mt-3 text-center text-[10px] font-medium text-brand-ink/40">
+        <p className="mt-3 text-center text-[10px] font-medium text-brand-ink/55">
           100% simulasi aman · data sintetis · bebas malware
         </p>
       ) : null}

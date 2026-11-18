@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -59,6 +59,10 @@ export function AppShell({
   const pathname = usePathname();
   const rank = getRank(user.xp);
   const [loggingOut, setLoggingOut] = useState(false);
+  // Radix generates the menu trigger id with useId. Rendering it only after
+  // mount avoids a server/client id mismatch on hydration.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const isActive = (href: string) => {
     const prefixes = ACTIVE_PREFIXES[href] ?? [href];
@@ -83,6 +87,12 @@ export function AppShell({
 
   return (
     <div className="gradient-cream min-h-screen">
+      <a
+        href="#konten-utama"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:inline-flex focus:items-center focus:rounded-full focus:bg-brand-ink focus:px-4 focus:py-2 focus:text-[12px] focus:font-bold focus:text-white"
+      >
+        Lewati ke konten utama
+      </a>
       <header className="sticky top-0 z-40 border-b border-white/60 bg-[#FBF8EF]/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3 lg:gap-6">
@@ -109,7 +119,7 @@ export function AppShell({
                       "rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors lg:px-4",
                       active
                         ? "bg-brand-ink text-white shadow-sm"
-                        : "text-brand-ink/60 hover:bg-white hover:text-brand-ink",
+                        : "text-brand-ink/65 hover:bg-white hover:text-brand-ink",
                     )}
                   >
                     {item.label}
@@ -124,7 +134,7 @@ export function AppShell({
                     "rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors lg:px-4",
                     isActive("/admin")
                       ? "bg-brand-ink text-white shadow-sm"
-                      : "text-brand-ink/60 hover:bg-white hover:text-brand-ink",
+                      : "text-brand-ink/65 hover:bg-white hover:text-brand-ink",
                   )}
                 >
                   Admin
@@ -149,12 +159,13 @@ export function AppShell({
             <Link
               href="/profil#riwayat"
               aria-label="Riwayat aktivitas"
-              className="hidden h-10 w-10 items-center justify-center rounded-full text-brand-ink/60 transition hover:bg-white hover:text-brand-ink md:flex"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-brand-ink/65 transition hover:bg-white hover:text-brand-ink md:flex"
             >
               <Bell className="h-5 w-5" />
             </Link>
 
-            <DropdownMenu>
+            {mounted ? (
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
@@ -166,7 +177,7 @@ export function AppShell({
                       {initials(user.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <ChevronDown className="hidden h-4 w-4 text-brand-ink/40 sm:block" />
+                  <ChevronDown className="hidden h-4 w-4 text-brand-ink/55 sm:block" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-72">
@@ -174,7 +185,7 @@ export function AppShell({
                   <p className="truncate text-[13px] font-extrabold text-brand-ink">
                     {user.name}
                   </p>
-                  <p className="mt-0.5 truncate text-[10px] text-brand-ink/45">
+                  <p className="mt-0.5 truncate text-[10px] text-brand-ink/55">
                     {user.email}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -244,11 +255,27 @@ export function AppShell({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            ) : (
+              <button
+                type="button"
+                aria-label="Menu akun"
+                className="flex min-h-[44px] items-center gap-2 rounded-full p-0.5 pr-1 text-left transition hover:bg-white/70"
+              >
+                <Avatar className="h-9 w-9 border-2 border-white shadow-sm sm:h-10 sm:w-10">
+                  <AvatarFallback className="bg-brand-ink text-[12px] font-bold text-white">
+                    {initials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <ChevronDown className="hidden h-4 w-4 text-brand-ink/55 sm:block" />
+              </button>
+            )}
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-0">{children}</main>
+      <main id="konten-utama" tabIndex={-1} className="mx-auto w-full max-w-6xl px-0 outline-none">
+        {children}
+      </main>
 
       <nav
         className="fixed inset-x-0 bottom-0 z-40 border-t border-brand-ink/10 bg-[#FBF8EF]/95 backdrop-blur-xl md:hidden"
@@ -265,7 +292,7 @@ export function AppShell({
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 pb-1 pt-1 text-[10.5px] font-semibold transition-colors",
-                  active ? "text-primary" : "text-brand-ink/45",
+                  active ? "text-primary" : "text-brand-ink/55",
                 )}
               >
                 <span

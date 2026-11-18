@@ -96,9 +96,9 @@ export default async function KabPage() {
                   <p className="text-5xl font-extrabold leading-none">
                     {latest?.kabIndex ?? "—"}
                   </p>
-                  <p className="pb-1 text-[11px] font-semibold text-white/45">/ 100</p>
+                  <p className="pb-1 text-[11px] font-semibold text-white/60">/ 100</p>
                 </div>
-                <p className="mt-2 max-w-md text-[11.5px] leading-relaxed text-white/55">
+                <p className="mt-2 max-w-md text-[11.5px] leading-relaxed text-white/70">
                   {latest
                     ? `Terakhir diukur pada ${formatDate(latest.createdAt, true)} melalui ${ASSESSMENT_LABEL[latest.type].toLowerCase()}.`
                     : "Belum ada pengukuran. Mulai dari pre-test untuk mendapatkan garis dasar."}
@@ -179,14 +179,14 @@ export default async function KabPage() {
               <History className="h-4 w-4 text-primary" /> Riwayat pengukuran
             </h2>
             {assessments.length === 0 ? (
-              <div className="mt-3 rounded-2xl bg-brand-cream p-4 text-[11.5px] leading-relaxed text-brand-ink/50">
+              <div className="mt-3 rounded-2xl bg-brand-cream p-4 text-[11.5px] leading-relaxed text-brand-ink/60">
                 Belum ada riwayat. Pre-test pertamamu akan muncul di sini.
               </div>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full min-w-[520px] border-separate border-spacing-y-1.5 text-left">
                   <thead>
-                    <tr className="text-[9px] uppercase tracking-wide text-brand-ink/35">
+                    <tr className="text-[9px] uppercase tracking-wide text-brand-ink/50">
                       <th className="px-2 font-bold">Tanggal</th>
                       <th className="px-2 font-bold">Jenis</th>
                       <th className="px-2 text-right font-bold">Pengetahuan</th>
@@ -239,7 +239,7 @@ export default async function KabPage() {
                     <Badge variant="warning">Garis dasar</Badge>
                   )}
                 </div>
-                <p className="mt-1 text-[10px] leading-relaxed text-brand-ink/50">
+                <p className="mt-1 text-[10px] leading-relaxed text-brand-ink/60">
                   Diisi sebelum latihan agar perubahan bisa dibandingkan.
                 </p>
                 <Button asChild variant={preTest ? "outline" : "dark"} size="sm" className="mt-2.5 w-full">
@@ -264,7 +264,7 @@ export default async function KabPage() {
                     <Badge variant="lavender">Terbuka</Badge>
                   )}
                 </div>
-                <p className="mt-1 text-[10px] leading-relaxed text-brand-ink/50">
+                <p className="mt-1 text-[10px] leading-relaxed text-brand-ink/60">
                   Diisi setelah minimal satu simulasi untuk mengukur perubahan.
                 </p>
                 <Button
@@ -299,20 +299,20 @@ export default async function KabPage() {
             <p className="flex items-center gap-1.5 text-[11px] font-extrabold">
               <Sparkles className="h-3.5 w-3.5 text-primary" /> Cara membaca hasil
             </p>
-            <ul className="mt-2 space-y-1.5 text-[10px] leading-relaxed text-brand-ink/50">
+            <ul className="mt-2 space-y-1.5 text-[10px] leading-relaxed text-brand-ink/60">
               <li>• 0–39: fondasi perlu diperkuat.</li>
               <li>• 40–69: mulai waspada, masih ada celah.</li>
               <li>• 70–89: siap menghadapi modus umum.</li>
               <li>• 90–100: konsisten dan reflektif.</li>
             </ul>
-            <p className="mt-2 text-[9px] text-brand-ink/35">
+            <p className="mt-2 text-[9px] text-brand-ink/50">
               Ambang ini hanya panduan edukatif WASPADAIN, bukan skala klinis.
             </p>
           </div>
         </aside>
       </div>
 
-      <div className="mt-4 rounded-3xl bg-white/60 p-4 text-[10.5px] leading-relaxed text-brand-ink/45">
+      <div className="mt-4 rounded-3xl bg-white/60 p-4 text-[10.5px] leading-relaxed text-brand-ink/55">
         <span className="font-bold text-brand-ink/65">Privasi:</span> jawaban KAB disimpan
         untuk menampilkan progres akunmu dan tidak dibagikan ke pihak ketiga. Data
         simulasi seluruhnya sintetis.

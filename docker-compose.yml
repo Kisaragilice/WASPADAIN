@@ -1,35 +1,44 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: waspadain-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: waspadain
-      POSTGRES_PASSWORD: waspadain
-      POSTGRES_DB: waspadain
+      POSTGRES_USER: ${POSTGRES_USER:-waspadain}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD wajib diisi di .env.docker}
+      POSTGRES_DB: ${POSTGRES_DB:-waspadain}
+    # Loopback only: the database is never reachable from other machines.
+    # Host port 5433 avoids clashing with a locally installed PostgreSQL.
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
     volumes:
       - waspadain_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U waspadain -d waspadain"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-waspadain} -d ${POSTGRES_DB:-waspadain}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   app:
     build: .
-    container_name: waspadain-app
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://waspadain:waspadain@db:5432/waspadain?schema=public
-      AUTH_SECRET: ${AUTH_SECRET:-ganti-dengan-secret-acak-minimal-32-karakter-aman}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-waspadain}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-waspadain}?schema=public
+      # No public fallback: compose refuses to start without a real secret.
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET wajib diisi dengan nilai acak minimal 32 karakter}
+      APP_URL: ${APP_URL:-http://localhost:3000}
       NODE_ENV: production
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
     ports:
-      - "3000:3000"
+      # Internal Next.js port stays 3000; the host port is configurable.
+      - "${APP_PORT:-3000}:3000"
 
 volumes:
   waspadain_pgdata:

@@ -48,15 +48,18 @@ model User {
   passwordHash String
   role         Role     @default(USER)
   xp           Int      @default(0)
+  mustChangePassword Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  sessions      Session[]
-  attempts      SimulationAttempt[]
-  assessments   Assessment[]
-  badges        UserBadge[]
-  moduleProgress ModuleProgress[]
-  reflexAttempts ReflexAttempt[]
+  sessions            Session[]
+  attempts            SimulationAttempt[]
+  assessments         Assessment[]
+  badges              UserBadge[]
+  moduleProgress      ModuleProgress[]
+  reflexAttempts      ReflexAttempt[]
+  xpTransactions      XpTransaction[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([createdAt])
 }
@@ -115,6 +118,7 @@ model SimulationAttempt {
   vulnerableCategories Json?
   startedAt           DateTime     @default(now())
   completedAt         DateTime?
+  bongkarCompletedAt  DateTime?
   updatedAt           DateTime     @updatedAt
 
   user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -124,6 +128,7 @@ model SimulationAttempt {
   @@index([userId, status])
   @@index([scenarioId, status])
   @@index([completedAt])
+  @@index([userId, bongkarCompletedAt])
 }
 
 model SimulationResponse {
@@ -133,10 +138,12 @@ model SimulationResponse {
   actionId  String
   label     String
   verdict   SimOutcome
+  radarCategories Json?
   createdAt DateTime    @default(now())
 
   attempt SimulationAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
+  @@unique([attemptId, sceneId])
   @@index([attemptId])
 }
 
@@ -212,4 +219,52 @@ model ReflexAttempt {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+enum XpSource {
+  SIMULATION
+  REFLEX
+  MODULE
+  ASSESSMENT
+}
+
+/// Append-only ledger for every XP grant. The unique key makes each grant
+/// idempotent even when several requests arrive at the same time.
+model XpTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int
+  source      XpSource
+  referenceId String
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, source, referenceId])
+  @@index([userId, createdAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+/// Database-backed rate limiter so limits survive restarts and work across
+/// replicas that share the same PostgreSQL database.
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
 }

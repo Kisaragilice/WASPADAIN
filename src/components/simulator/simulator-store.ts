@@ -17,6 +17,8 @@ interface SimulatorState {
   startSceneId: string;
   sceneId: string | null;
   pending: boolean;
+  error: string | null;
+  lastAction: { sceneId: string; actionId: string } | null;
   feedback: string | null;
   completed: boolean;
   result: SimulationResult | null;
@@ -27,6 +29,7 @@ interface SimulatorState {
     currentSceneId: string | null;
   }) => void;
   submit: (sceneId: string, actionId: string) => Promise<void>;
+  retry: () => Promise<void>;
   dismissFeedback: () => void;
 }
 
@@ -36,6 +39,8 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => ({
   startSceneId: "",
   sceneId: null,
   pending: false,
+  error: null,
+  lastAction: null,
   feedback: null,
   completed: false,
   result: null,
@@ -47,6 +52,8 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => ({
       startSceneId,
       sceneId: currentSceneId ?? startSceneId,
       pending: false,
+      error: null,
+      lastAction: null,
       feedback: null,
       completed: false,
       result: null,
@@ -56,7 +63,7 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => ({
   submit: async (sceneId, actionId) => {
     const { attemptId, pending } = get();
     if (pending || !attemptId) return;
-    set({ pending: true });
+    set({ pending: true, error: null, lastAction: { sceneId, actionId } });
 
     try {
       const response = await fetch(`/api/attempts/${attemptId}/step`, {
@@ -67,8 +74,9 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => ({
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.error ?? "Gagal memproses pilihan.");
-        set({ pending: false });
+        const message = data.error ?? "Gagal memproses pilihan.";
+        toast.error(message);
+        set({ pending: false, error: message });
         return;
       }
 
@@ -76,6 +84,8 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => ({
         set({
           pending: false,
           completed: true,
+          error: null,
+          lastAction: null,
           result: {
             outcome: data.outcome,
             score: data.score,
@@ -95,14 +105,29 @@ export const useSimulatorStore = create<SimulatorState>((set, get) => ({
 
       set({
         pending: false,
+        error: null,
+        lastAction: null,
         sceneId: data.nextSceneId,
         feedback: data.feedback ?? null,
       });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+      });
     } catch {
-      set({ pending: false });
-      toast.error("Koneksi bermasalah. Coba lagi.");
+      const message =
+        "Koneksi bermasalah. Pilihanmu belum tercatat, silakan coba lagi.";
+      toast.error(message);
+      set({ pending: false, error: message });
     }
+  },
+
+  retry: async () => {
+    const { lastAction, submit } = get();
+    if (!lastAction) return;
+    await submit(lastAction.sceneId, lastAction.actionId);
   },
 
   dismissFeedback: () => set({ feedback: null }),

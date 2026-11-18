@@ -70,7 +70,7 @@ export default async function ModuleDetailPage({
       />
 
       <div className="mt-4 rounded-2xl bg-white p-3 shadow-card">
-        <div className="flex items-center justify-between text-[10px] font-semibold text-brand-ink/45">
+        <div className="flex items-center justify-between text-[10px] font-semibold text-brand-ink/55">
           <span>Progres modul</span>
           <span>{completed ? "100" : "0"}%</span>
         </div>
@@ -134,7 +134,7 @@ export default async function ModuleDetailPage({
             <h2 className="flex items-center gap-2 text-sm font-extrabold">
               <BookOpenCheck className="h-4 w-4 text-primary" /> Modul ini
             </h2>
-            <ul className="mt-2.5 space-y-1.5 text-[11px] text-brand-ink/55">
+            <ul className="mt-2.5 space-y-1.5 text-[11px] text-brand-ink/65">
               <li className="flex items-center gap-1.5">
                 <Clock3 className="h-3 w-3" /> {material.readingMinutes} menit baca
               </li>
@@ -165,7 +165,7 @@ export default async function ModuleDetailPage({
               <p className="mt-1 text-[12px] font-extrabold leading-snug group-hover:text-primary">
                 {nextModule.title}
               </p>
-              <p className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-brand-ink/45">
+              <p className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-brand-ink/55">
                 Lanjut belajar <ArrowRight className="h-3 w-3" />
               </p>
             </Link>

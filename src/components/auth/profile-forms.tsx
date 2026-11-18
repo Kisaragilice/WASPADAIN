@@ -62,7 +62,7 @@ export function ProfileAccountForm({
       <div className="space-y-1.5">
         <Label htmlFor="profile-email">Email</Label>
         <Input id="profile-email" value={email} readOnly disabled className="bg-brand-cream/60" />
-        <p className="text-[9.5px] text-brand-ink/40">
+        <p className="text-[9.5px] text-brand-ink/55">
           Email adalah identitas masuk dan tidak dapat diubah dari halaman ini.
         </p>
       </div>
@@ -154,9 +154,9 @@ export function ProfilePasswordForm() {
           />
         </div>
       </div>
-      <p className="flex items-center gap-1.5 text-[9.5px] text-brand-ink/40">
-        <ShieldCheck className="h-3 w-3 text-primary" /> Minimal 8 karakter. Sesi lain tidak
-        otomatis keluar.
+      <p className="flex items-center gap-1.5 text-[9.5px] text-brand-ink/55">
+        <ShieldCheck className="h-3 w-3 text-primary" /> Minimal 8 karakter. Perangkat
+        lain otomatis keluar setelah kata sandi berubah.
       </p>
       <Button
         type="submit"

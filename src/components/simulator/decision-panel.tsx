@@ -55,7 +55,7 @@ export function DecisionPanel({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-extrabold leading-tight">{decision.title}</h3>
-            <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-brand-ink/60">
+            <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-brand-ink/65">
               Pilih tindakan
             </span>
           </div>
@@ -65,7 +65,7 @@ export function DecisionPanel({
             </p>
           ) : null}
           {decision.hint ? (
-            <p className="mt-2 flex items-start gap-1.5 rounded-xl bg-white/75 px-3 py-2 text-[11px] leading-relaxed text-brand-ink/55">
+            <p className="mt-2 flex items-start gap-1.5 rounded-xl bg-white/75 px-3 py-2 text-[11px] leading-relaxed text-brand-ink/65">
               <Sparkles className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
               {decision.hint}
             </p>
@@ -98,7 +98,7 @@ export function DecisionPanel({
           );
         })}
       </div>
-      <p className="mt-3 text-center text-[10px] font-medium text-brand-ink/45">
+      <p className="mt-3 text-center text-[10px] font-medium text-brand-ink/55">
         Tidak ada jawaban yang mempermalukan. Setiap pilihan adalah bahan belajar.
       </p>
     </motion.section>

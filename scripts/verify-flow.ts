@@ -3,6 +3,7 @@ import { SCENARIO_SEEDS } from "../src/lib/scenario";
 import { KAB_QUESTIONS } from "../src/lib/kab";
 import { QUICK_REFLEX_QUESTIONS } from "../src/lib/scenario";
 import type { ScenarioConfig, ScenarioScene } from "../src/lib/scenario/types";
+import { ensureTestAdmin } from "./test-fixtures";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3100";
 const prisma = new PrismaClient();
@@ -198,6 +199,11 @@ async function main() {
     userJar,
     "Bongkar",
   );
+  await request(`/api/attempts/${started.attemptId}/bongkar`, userJar, {
+    method: "POST",
+    expected: 200,
+  });
+  pass("Mode Bongkar ditandai selesai");
 
   const postResponse = await request("/api/assessments", userJar, {
     method: "POST",
@@ -253,7 +259,8 @@ async function main() {
   await page("/profil", userJar, "Penguji Alur Diperbarui");
 
   const adminJar: Jar = new Map();
-  await login(adminJar, "admin@waspadain.id", "Waspada#2026", "/admin");
+  const adminCreds = await ensureTestAdmin();
+  await login(adminJar, adminCreds.email, adminCreds.password, "/admin");
   await page("/admin", adminJar, "Kelola katalog dan pantau latihan");
 
   const scenario = await prisma.scenario.findUnique({ where: { slug: "etle-apk" } });

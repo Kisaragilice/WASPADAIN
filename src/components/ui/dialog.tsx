@@ -43,7 +43,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Close
         type="button"
         aria-label="Tutup dialog"
-        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-brand-ink/60 transition hover:bg-brand-ink/5 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-brand-ink/65 transition hover:bg-brand-ink/5 hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <X className="h-5 w-5" />
         <span className="sr-only">Tutup</span>

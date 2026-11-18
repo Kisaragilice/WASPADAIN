@@ -73,7 +73,7 @@ export function QuickReflex({
       </div>
 
       <div className="mt-3 rounded-2xl bg-white p-4">
-        <p className="text-[12px] leading-relaxed text-brand-ink/60">{question.prompt}</p>
+        <p className="text-[12px] leading-relaxed text-brand-ink/65">{question.prompt}</p>
         <p className="mt-2 text-[13px] font-semibold leading-relaxed text-brand-ink">
           “{question.quote}”
         </p>
@@ -123,7 +123,7 @@ export function QuickReflex({
           </div>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-2 text-[9.5px] font-medium text-brand-ink/40">
+        <div className="mt-3 flex items-center justify-between gap-2 text-[9.5px] font-medium text-brand-ink/55">
           <span className="inline-flex items-center gap-1">
             <ShieldCheck className="h-3 w-3 text-primary" />
             {alreadyCorrect ? "Sudah pernah dijawab benar" : "Satu pertanyaan, satu refleks"}

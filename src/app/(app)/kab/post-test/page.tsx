@@ -21,7 +21,11 @@ export default async function PostTestPage() {
       orderBy: { createdAt: "desc" },
     }),
     prisma.simulationAttempt.count({
-      where: { userId: user.id, status: "COMPLETED" },
+      where: {
+        userId: user.id,
+        status: "COMPLETED",
+        bongkarCompletedAt: { not: null },
+      },
     }),
   ]);
 
@@ -30,7 +34,7 @@ export default async function PostTestPage() {
     locked = "Pre-test belum diisi. Selesaikan pre-test terlebih dahulu agar perubahan bisa dibandingkan.";
   } else if (completedAttempts === 0) {
     locked =
-      "Belum ada simulasi yang selesai. Tuntaskan minimal satu skenario beserta Mode Bongkar, lalu kembali ke sini.";
+      "Belum ada simulasi yang selesai beserta Mode Bongkar. Tuntaskan minimal satu skenario lalu buka Mode Bongkar sebelum mengisi post-test.";
   }
 
   return (
@@ -95,7 +99,7 @@ export default async function PostTestPage() {
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/60 px-3.5 py-3 text-[10px] text-brand-ink/45">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/60 px-3.5 py-3 text-[10px] text-brand-ink/55">
         <span>Hasil post-test tidak memengaruhi hak akses atau peringkat.</span>
         <Link href="/kab" className="inline-flex items-center gap-1 font-bold text-primary">
           Riwayat pengukuran <ArrowRight className="h-3 w-3" />

@@ -3,6 +3,16 @@ import "server-only";
 import type { Prisma, Scenario } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { BADGES, XP_RULES } from "@/lib/gamification";
+import { grantXp } from "@/lib/xp";
+import {
+  isUniqueConstraintError,
+  StateConflictError,
+} from "@/lib/prisma-errors";
+import {
+  computeEligibleBadgeKeys,
+  scoreSimulation,
+  type StepResponseRecord,
+} from "@/lib/simulation";
 import type {
   RadarCategory,
   ScenarioConfig,
@@ -47,8 +57,50 @@ export type StepResult =
       feedback: string;
       redFlagsTotal: number;
       newBadges: string[];
+      alreadyCompleted?: boolean;
     }
   | { ok: false; error: string; status: number };
+
+class StepError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "StepError";
+    this.status = status;
+  }
+}
+
+async function existingCompletedResult(
+  attemptId: string,
+  userId: string,
+): Promise<StepResult | null> {
+  const attempt = await prisma.simulationAttempt.findUnique({
+    where: { id: attemptId },
+    include: { scenario: true },
+  });
+  if (
+    !attempt ||
+    attempt.userId !== userId ||
+    attempt.status !== "COMPLETED" ||
+    !attempt.outcome
+  ) {
+    return null;
+  }
+
+  return {
+    ok: true,
+    completed: true,
+    alreadyCompleted: true,
+    outcome: attempt.outcome,
+    score: attempt.score,
+    xpEarned: attempt.xpEarned,
+    feedback:
+      "Simulasi ini sudah selesai. Hasil tersimpan tidak dihitung ulang.",
+    redFlagsTotal: attempt.redFlagsTotal,
+    newBadges: [],
+  };
+}
 
 export async function startAttempt(params: {
   userId: string;
@@ -56,32 +108,54 @@ export async function startAttempt(params: {
   restart?: boolean;
 }) {
   const { userId, scenario } = params;
+  const lockKey = `${userId}:${scenario.id}`;
 
-  if (!params.restart) {
-    const existing = await prisma.simulationAttempt.findFirst({
-      where: { userId, scenarioId: scenario.id, status: "IN_PROGRESS" },
-      orderBy: { startedAt: "desc" },
+  try {
+    return await prisma.$transaction(async (tx) => {
+      // Serializes concurrent starts for the same user + scenario across all
+      // application replicas that share this database.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+
+      if (params.restart) {
+        await tx.simulationAttempt.updateMany({
+          where: { userId, scenarioId: scenario.id, status: "IN_PROGRESS" },
+          data: { status: "ABANDONED" },
+        });
+      } else {
+        const existing = await tx.simulationAttempt.findFirst({
+          where: { userId, scenarioId: scenario.id, status: "IN_PROGRESS" },
+          orderBy: { startedAt: "desc" },
+        });
+        if (existing) return existing;
+      }
+
+      const config = scenario.config as unknown as ScenarioConfig;
+      const variantIndex = Math.floor(
+        Math.random() * Math.max(config.variants.length, 1),
+      );
+
+      return tx.simulationAttempt.create({
+        data: {
+          userId,
+          scenarioId: scenario.id,
+          variantIndex,
+          currentSceneId: config.startSceneId,
+          redFlagsTotal: config.redFlags.length,
+        },
+      });
     });
-    if (existing) return existing;
-  } else {
-    await prisma.simulationAttempt.updateMany({
-      where: { userId, scenarioId: scenario.id, status: "IN_PROGRESS" },
-      data: { status: "ABANDONED" },
-    });
+  } catch (error) {
+    // The partial unique index is a second line of defence. If another
+    // replica won the race before our lock, return its active attempt.
+    if (isUniqueConstraintError(error) && !params.restart) {
+      const existing = await prisma.simulationAttempt.findFirst({
+        where: { userId, scenarioId: scenario.id, status: "IN_PROGRESS" },
+        orderBy: { startedAt: "desc" },
+      });
+      if (existing) return existing;
+    }
+    throw error;
   }
-
-  const config = scenario.config as unknown as ScenarioConfig;
-  const variantIndex = Math.floor(Math.random() * Math.max(config.variants.length, 1));
-
-  return prisma.simulationAttempt.create({
-    data: {
-      userId,
-      scenarioId: scenario.id,
-      variantIndex,
-      currentSceneId: config.startSceneId,
-      redFlagsTotal: config.redFlags.length,
-    },
-  });
 }
 
 export async function submitStep(params: {
@@ -99,12 +173,16 @@ export async function submitStep(params: {
     return { ok: false, error: "Simulasi tidak ditemukan.", status: 404 };
   }
   if (attempt.status !== "IN_PROGRESS") {
+    const completed = await existingCompletedResult(attempt.id, params.userId);
+    if (completed) return completed;
     return { ok: false, error: "Simulasi ini sudah selesai.", status: 409 };
   }
 
   const { config } = resolveConfig(attempt.scenario, attempt.variantIndex);
 
   if (attempt.currentSceneId !== params.sceneId) {
+    const completed = await existingCompletedResult(attempt.id, params.userId);
+    if (completed) return completed;
     return {
       ok: false,
       error: "Langkah simulasi tidak sinkron. Muat ulang halaman.",
@@ -121,7 +199,9 @@ export async function submitStep(params: {
     (item) => item.id === params.actionId,
   );
   const plainAction: SceneAction | undefined =
-    scene.action && scene.action.id === params.actionId ? scene.action : undefined;
+    scene.action && scene.action.id === params.actionId
+      ? scene.action
+      : undefined;
 
   if (!choice && !plainAction) {
     return { ok: false, error: "Aksi tidak valid.", status: 422 };
@@ -130,78 +210,187 @@ export async function submitStep(params: {
   const label = choice?.label ?? plainAction?.label ?? params.actionId;
   const verdict = choice?.verdict ?? plainAction?.verdict;
   const next = choice?.next ?? plainAction?.next ?? null;
+  const categories: RadarCategory[] =
+    verdict === "vulnerable"
+      ? (choice?.categories ??
+        plainAction?.categories ??
+        config.redFlags.map((flag) => flag.category))
+      : [];
 
-  if (verdict) {
-    await prisma.simulationResponse.create({
-      data: {
-        attemptId: attempt.id,
-        sceneId: scene.id,
-        actionId: params.actionId,
-        label,
-        verdict: verdict === "safe" ? "SAFE" : "VULNERABLE",
-      },
-    });
-
-    if (next) {
-      await prisma.simulationAttempt.update({
+  try {
+    const outcome = await prisma.$transaction(async (tx) => {
+      // Re-read inside the transaction and gate every write on the exact
+      // scene the client answered. Only one concurrent request can win.
+      const fresh = await tx.simulationAttempt.findUnique({
         where: { id: attempt.id },
+        select: { status: true, currentSceneId: true, userId: true },
+      });
+      if (!fresh || fresh.userId !== params.userId) {
+        throw new StepError("Simulasi tidak ditemukan.", 404);
+      }
+      if (fresh.status !== "IN_PROGRESS") {
+        throw new StepError("Simulasi ini sudah selesai.", 409);
+      }
+      if (fresh.currentSceneId !== scene.id) {
+        throw new StepError(
+          "Langkah simulasi tidak sinkron. Muat ulang halaman.",
+          409,
+        );
+      }
+
+      if (verdict) {
+        await tx.simulationResponse.create({
+          data: {
+            attemptId: attempt.id,
+            sceneId: scene.id,
+            actionId: params.actionId,
+            label,
+            verdict: verdict === "safe" ? "SAFE" : "VULNERABLE",
+            radarCategories: categories as unknown as Prisma.InputJsonValue,
+          },
+        });
+
+        if (next) {
+          const advanced = await tx.simulationAttempt.updateMany({
+            where: {
+              id: attempt.id,
+              status: "IN_PROGRESS",
+              currentSceneId: scene.id,
+            },
+            data: { currentSceneId: next },
+          });
+          if (advanced.count !== 1) {
+            throw new StepError(
+              "Langkah simulasi tidak sinkron. Muat ulang halaman.",
+              409,
+            );
+          }
+          return {
+            kind: "next" as const,
+            nextSceneId: next,
+            feedback: choice?.feedback ?? plainAction?.label,
+          };
+        }
+
+        const responses = await tx.simulationResponse.findMany({
+          where: { attemptId: attempt.id },
+          select: {
+            sceneId: true,
+            actionId: true,
+            verdict: true,
+            radarCategories: true,
+          },
+        });
+        const scored = scoreSimulation(
+          responses.map((response) => ({
+            sceneId: response.sceneId,
+            actionId: response.actionId,
+            verdict: response.verdict,
+            radarCategories:
+              (response.radarCategories as RadarCategory[] | null) ?? [],
+          })) satisfies StepResponseRecord[],
+          config.redFlags,
+        );
+        const xpEarned =
+          scored.outcome === "SAFE"
+            ? XP_RULES.safeSimulation
+            : XP_RULES.vulnerableSimulation;
+
+        const completed = await tx.simulationAttempt.updateMany({
+          where: {
+            id: attempt.id,
+            status: "IN_PROGRESS",
+            currentSceneId: scene.id,
+          },
+          data: {
+            status: "COMPLETED",
+            currentSceneId: null,
+            outcome: scored.outcome,
+            score: scored.score,
+            xpEarned,
+            redFlagsIdentified: scored.redFlagsIdentified,
+            vulnerableCategories:
+              scored.vulnerableCategories as unknown as Prisma.InputJsonValue,
+            completedAt: new Date(),
+          },
+        });
+        if (completed.count !== 1) {
+          throw new StepError(
+            "Simulasi ini sudah diproses oleh permintaan lain.",
+            409,
+          );
+        }
+
+        await grantXp(tx, params.userId, {
+          amount: xpEarned,
+          source: "SIMULATION",
+          referenceId: attempt.id,
+        });
+
+        return {
+          kind: "completed" as const,
+          scored,
+          xpEarned,
+          feedback:
+            choice?.feedback ??
+            plainAction?.label ??
+            "Simulasi selesai. Pelajari pola jebakannya di Mode Bongkar.",
+        };
+      }
+
+      if (!next) {
+        throw new StepError("Alur simulasi berakhir tanpa hasil.", 500);
+      }
+
+      const advanced = await tx.simulationAttempt.updateMany({
+        where: {
+          id: attempt.id,
+          status: "IN_PROGRESS",
+          currentSceneId: scene.id,
+        },
         data: { currentSceneId: next },
       });
-      const nextScene = config.scenes.find((item) => item.id === next);
+      if (advanced.count !== 1) {
+        throw new StepError(
+          "Langkah simulasi tidak sinkron. Muat ulang halaman.",
+          409,
+        );
+      }
+
+      return { kind: "next" as const, nextSceneId: next, feedback: undefined };
+    });
+
+    if (outcome.kind === "next") {
+      const nextScene = config.scenes.find(
+        (item) => item.id === outcome.nextSceneId,
+      );
+      if (!nextScene) {
+        return {
+          ok: false,
+          error: "Alur simulasi berakhir tanpa hasil.",
+          status: 500,
+        };
+      }
       return {
         ok: true,
         completed: false,
-        nextSceneId: next,
-        feedback: choice?.feedback ?? plainAction?.label,
-        nextScene: nextScene ?? scene,
+        nextSceneId: nextScene.id,
+        feedback: outcome.feedback,
+        nextScene,
       };
     }
 
-    const responses = await prisma.simulationResponse.findMany({
-      where: { attemptId: attempt.id },
-    });
-    const anyVulnerable = responses.some((item) => item.verdict === "VULNERABLE");
-    const outcome = anyVulnerable ? "VULNERABLE" : "SAFE";
-    const vulnerableDecisions = responses.filter(
-      (item) => item.verdict === "VULNERABLE",
-    ).length;
-    const score = Math.max(0, 100 - vulnerableDecisions * 50);
-    const xpEarned =
-      outcome === "SAFE" ? XP_RULES.safeSimulation : XP_RULES.vulnerableSimulation;
-    const categories: RadarCategory[] = anyVulnerable
-      ? Array.from(new Set(config.redFlags.map((flag) => flag.category)))
-      : [];
-
-    await prisma.$transaction([
-      prisma.simulationAttempt.update({
-        where: { id: attempt.id },
-        data: {
-          status: "COMPLETED",
-          currentSceneId: null,
-          outcome,
-          score,
-          xpEarned,
-          redFlagsIdentified: outcome === "SAFE" ? config.redFlags.length : 0,
-          vulnerableCategories: categories as unknown as Prisma.InputJsonValue,
-          completedAt: new Date(),
-        },
-      }),
-      prisma.user.update({
-        where: { id: params.userId },
-        data: { xp: { increment: xpEarned } },
-      }),
-    ]);
-
-    if (outcome === "SAFE" && attempt.scenario.badgeKey) {
-      await prisma.userBadge
-        .create({
-          data: {
+    if (outcome.scored.outcome === "SAFE" && attempt.scenario.badgeKey) {
+      await prisma.userBadge.createMany({
+        data: [
+          {
             userId: params.userId,
             badgeKey: attempt.scenario.badgeKey,
             scenarioId: attempt.scenarioId,
           },
-        })
-        .catch(() => null);
+        ],
+        skipDuplicates: true,
+      });
     }
 
     const newBadges = await awardBadges(params.userId);
@@ -209,38 +398,43 @@ export async function submitStep(params: {
     return {
       ok: true,
       completed: true,
-      outcome,
-      score,
-      xpEarned,
-      feedback:
-        choice?.feedback ??
-        plainAction?.label ??
-        "Simulasi selesai. Pelajari pola jebakannya di Mode Bongkar.",
+      outcome: outcome.scored.outcome,
+      score: outcome.scored.score,
+      xpEarned: outcome.xpEarned,
+      feedback: outcome.feedback,
       redFlagsTotal: config.redFlags.length,
       newBadges: newBadges.filter(
-        (key) => key !== attempt.scenario.badgeKey || outcome === "SAFE",
+        (key) =>
+          key !== attempt.scenario.badgeKey ||
+          outcome.scored.outcome === "SAFE",
       ),
     };
+  } catch (error) {
+    if (error instanceof StepError) {
+      return { ok: false, error: error.message, status: error.status };
+    }
+    if (error instanceof StateConflictError) {
+      const completed = await existingCompletedResult(
+        attempt.id,
+        params.userId,
+      );
+      if (completed) return completed;
+      return { ok: false, error: error.message, status: 409 };
+    }
+    if (isUniqueConstraintError(error)) {
+      const completed = await existingCompletedResult(
+        attempt.id,
+        params.userId,
+      );
+      if (completed) return completed;
+      return {
+        ok: false,
+        error: "Langkah ini sudah diproses. Muat ulang halaman.",
+        status: 409,
+      };
+    }
+    throw error;
   }
-
-  await prisma.simulationAttempt.update({
-    where: { id: attempt.id },
-    data: { currentSceneId: next },
-  });
-
-  const nextScene = next
-    ? config.scenes.find((item) => item.id === next)
-    : undefined;
-  if (!nextScene) {
-    return { ok: false, error: "Alur simulasi berakhir tanpa hasil.", status: 500 };
-  }
-
-  return {
-    ok: true,
-    completed: false,
-    nextSceneId: nextScene.id,
-    nextScene,
-  };
 }
 
 export async function awardBadges(userId: string): Promise<string[]> {
@@ -249,7 +443,6 @@ export async function awardBadges(userId: string): Promise<string[]> {
       prisma.simulationAttempt.findMany({
         where: { userId, status: "COMPLETED" },
         include: { scenario: { select: { badgeKey: true } } },
-        orderBy: { startedAt: "asc" },
       }),
       prisma.userBadge.findMany({ where: { userId }, select: { badgeKey: true } }),
       prisma.assessment.findMany({ where: { userId }, select: { type: true } }),
@@ -261,38 +454,26 @@ export async function awardBadges(userId: string): Promise<string[]> {
     ]);
 
   const owned = new Set(badges.map((badge) => badge.badgeKey));
-  const safeAttempts = attempts.filter((attempt) => attempt.outcome === "SAFE");
-  const safeDistinctScenarios = new Set(
-    safeAttempts.map((attempt) => attempt.scenarioId),
-  );
-  const assessmentTypes = new Set(assessments.map((item) => item.type));
+  const eligible = computeEligibleBadgeKeys({
+    attempts: attempts.map((attempt) => ({
+      outcome: attempt.outcome,
+      scenarioId: attempt.scenarioId,
+      scenario: { badgeKey: attempt.scenario.badgeKey },
+    })),
+    assessmentTypes: assessments.map((item) => item.type),
+    completedModuleIds: moduleProgress.map((progress) => progress.moduleId),
+    publishedModuleIds: publishedModules.map((module) => module.id),
+  });
 
-  const eligible = new Set<string>();
-  for (const attempt of safeAttempts) {
-    if (attempt.scenario.badgeKey) eligible.add(attempt.scenario.badgeKey);
-  }
-  if (attempts[0]?.outcome === "SAFE") eligible.add("pelapor-cepat");
-  if (safeDistinctScenarios.size >= 3) eligible.add("zero-click-hero");
-  if (assessmentTypes.has("PRE") && assessmentTypes.has("POST")) {
-    eligible.add("kab-tuntas");
-  }
-  if (
-    publishedModules.length > 0 &&
-    publishedModules.every((module) =>
-      moduleProgress.some((progress) => progress.moduleId === module.id),
-    )
-  ) {
-    eligible.add("modul-tuntas");
-  }
-
-  const toAward = Array.from(eligible).filter(
+  const toAward = eligible.filter(
     (key) => !owned.has(key) && BADGES.some((badge) => badge.key === key),
   );
 
-  for (const badgeKey of toAward) {
-    await prisma.userBadge
-      .create({ data: { userId, badgeKey } })
-      .catch(() => null);
+  if (toAward.length > 0) {
+    await prisma.userBadge.createMany({
+      data: toAward.map((badgeKey) => ({ userId, badgeKey })),
+      skipDuplicates: true,
+    });
   }
 
   return toAward;

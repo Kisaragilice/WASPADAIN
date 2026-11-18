@@ -64,6 +64,8 @@ export interface DecisionChoice {
   next: string | null;
   verdict: "safe" | "vulnerable";
   feedback: string;
+  /** Radar dimensions exposed by this specific risky decision. */
+  categories?: RadarCategory[];
 }
 
 export interface SceneAction {
@@ -71,6 +73,8 @@ export interface SceneAction {
   label: string;
   next: string | null;
   verdict?: "safe" | "vulnerable";
+  /** Radar dimensions exposed by this specific risky action. */
+  categories?: RadarCategory[];
 }
 
 export interface Decision {

@@ -13,6 +13,7 @@ import {
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { PageHeader } from "@/components/layout/page-header";
+import { Pagination } from "@/components/layout/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -24,8 +25,18 @@ import {
 import { CHANNEL_META } from "@/components/brand/icons";
 import { formatDate, percentage, timeAgo } from "@/lib/utils";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ percobaan?: string }>;
+}) {
   const user = await requireAdmin();
+  const query = await searchParams;
+  const requestedPage = Number.parseInt(query.percobaan ?? "1", 10);
+  const attemptPage = Number.isFinite(requestedPage)
+    ? Math.max(1, requestedPage)
+    : 1;
+  const attemptsPerPage = 8;
 
   const [
     scenarios,
@@ -49,7 +60,8 @@ export default async function AdminPage() {
     prisma.simulationAttempt.findMany({
       where: { status: "COMPLETED" },
       orderBy: { completedAt: "desc" },
-      take: 8,
+      skip: (attemptPage - 1) * attemptsPerPage,
+      take: attemptsPerPage,
       include: {
         user: { select: { name: true } },
         scenario: { select: { title: true, slug: true, channel: true } },
@@ -67,6 +79,10 @@ export default async function AdminPage() {
   ]);
 
   const completed = safeAttempts + vulnerableAttempts;
+  const attemptTotalPages = Math.max(
+    1,
+    Math.ceil(completed / attemptsPerPage),
+  );
   const published = scenarios.filter((scenario) => scenario.isPublished).length;
   const totalAttemptsPerScenario = scenarios.reduce(
     (sum, scenario) => sum + scenario._count.attempts,
@@ -120,7 +136,7 @@ export default async function AdminPage() {
                 <h2 className="flex items-center gap-2 text-sm font-extrabold">
                   <Layers className="h-4 w-4 text-primary" /> Manajemen skenario
                 </h2>
-                <p className="mt-0.5 text-[10.5px] text-brand-ink/45">
+                <p className="mt-0.5 text-[10.5px] text-brand-ink/55">
                   Ubah metadata, level, estimasi waktu, dan status publikasi.
                 </p>
               </div>
@@ -136,14 +152,14 @@ export default async function AdminPage() {
               <ClipboardList className="h-4 w-4 text-primary" /> Simulasi terbaru
             </h2>
             {recentAttempts.length === 0 ? (
-              <p className="mt-3 rounded-2xl bg-brand-cream/70 p-4 text-[11.5px] text-brand-ink/45">
+              <p className="mt-3 rounded-2xl bg-brand-cream/70 p-4 text-[11.5px] text-brand-ink/55">
                 Belum ada simulasi selesai.
               </p>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full min-w-[560px] border-separate border-spacing-y-1.5 text-left">
                   <thead>
-                    <tr className="text-[9px] uppercase tracking-wide text-brand-ink/35">
+                    <tr className="text-[9px] uppercase tracking-wide text-brand-ink/50">
                       <th className="px-2 font-bold">Pengguna</th>
                       <th className="px-2 font-bold">Skenario</th>
                       <th className="px-2 font-bold">Hasil</th>
@@ -173,7 +189,7 @@ export default async function AdminPage() {
                             </Badge>
                           </td>
                           <td className="px-2 text-right font-bold">{attempt.score}</td>
-                          <td className="rounded-r-xl px-2 text-right text-[9px] text-brand-ink/40">
+                          <td className="rounded-r-xl px-2 text-right text-[9px] text-brand-ink/55">
                             {attempt.completedAt ? timeAgo(attempt.completedAt) : "—"}
                           </td>
                         </tr>
@@ -183,6 +199,12 @@ export default async function AdminPage() {
                 </table>
               </div>
             )}
+            <Pagination
+              page={Math.min(attemptPage, attemptTotalPages)}
+              totalPages={attemptTotalPages}
+              basePath="/admin"
+              paramName="percobaan"
+            />
           </section>
         </div>
 
@@ -195,7 +217,7 @@ export default async function AdminPage() {
               <p className="text-4xl font-extrabold leading-none">
                 {percentage(safeAttempts, completed)}%
               </p>
-              <p className="pb-1 text-[10px] text-white/45">hasil aman</p>
+              <p className="pb-1 text-[10px] text-white/60">hasil aman</p>
             </div>
             <Progress
               value={percentage(safeAttempts, completed)}
@@ -205,14 +227,14 @@ export default async function AdminPage() {
             <div className="mt-3 grid grid-cols-2 gap-2 text-center">
               <div className="rounded-xl bg-white/[0.07] p-2.5">
                 <p className="text-lg font-extrabold">{safeAttempts}</p>
-                <p className="text-[9px] text-white/45">Aman</p>
+                <p className="text-[9px] text-white/60">Aman</p>
               </div>
               <div className="rounded-xl bg-white/[0.07] p-2.5">
                 <p className="text-lg font-extrabold">{vulnerableAttempts}</p>
-                <p className="text-[9px] text-white/45">Rentan</p>
+                <p className="text-[9px] text-white/60">Rentan</p>
               </div>
             </div>
-            <p className="mt-3 text-[9px] leading-relaxed text-white/35">
+            <p className="mt-3 text-[9px] leading-relaxed text-white/55">
               Angka agregat diperbarui setiap simulasi selesai. Tidak ada data pribadi
               sensitif yang ditampilkan.
             </p>
@@ -228,7 +250,7 @@ export default async function AdminPage() {
                 return (
                   <div key={scenario.id}>
                     <div className="flex items-center justify-between gap-2 text-[10px]">
-                      <span className="truncate font-semibold text-brand-ink/60">{scenario.title}</span>
+                      <span className="truncate font-semibold text-brand-ink/65">{scenario.title}</span>
                       <span className="shrink-0 font-bold">{scenario._count.attempts}</span>
                     </div>
                     <Progress value={share} className="mt-1 h-1.5" />
@@ -236,7 +258,7 @@ export default async function AdminPage() {
                 );
               })}
               {topScenarios.length === 0 ? (
-                <p className="text-[10.5px] text-brand-ink/45">Belum ada data.</p>
+                <p className="text-[10.5px] text-brand-ink/55">Belum ada data.</p>
               ) : null}
             </div>
           </section>
@@ -253,11 +275,11 @@ export default async function AdminPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[10.5px] font-bold">{item.name}</p>
-                    <p className="truncate text-[8.5px] text-brand-ink/40">{item.email}</p>
+                    <p className="truncate text-[8.5px] text-brand-ink/55">{item.email}</p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-[9px] font-bold">{item.xp} XP</p>
-                    <p className="text-[8px] text-brand-ink/35">{formatDate(item.createdAt)}</p>
+                    <p className="text-[8px] text-brand-ink/50">{formatDate(item.createdAt)}</p>
                   </div>
                 </div>
               ))}

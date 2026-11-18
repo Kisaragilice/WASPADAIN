@@ -1,10 +1,13 @@
 import { chromium, type Browser } from "playwright";
+import { resetAuthRateLimits } from "./reset-rate-limits";
+import { ensureTestUser, TEST_USER, disconnectFixtures } from "./test-fixtures";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3100";
 const OUT = "/tmp/opencode/waspadain-shots";
 const consoleErrors: string[] = [];
 
 async function main() {
+  await ensureTestUser();
   const browser = await chromium.launch();
   try {
     await run(browser);
@@ -27,8 +30,8 @@ async function run(browser: Browser) {
   page.on("pageerror", (error) => consoleErrors.push(error.message));
 
   await page.goto(`${BASE}/masuk`, { waitUntil: "networkidle" });
-  await page.fill("#email", "warga@waspadain.id");
-  await page.fill("#password", "Waspada#2026");
+  await page.fill("#email", TEST_USER.email);
+  await page.fill("#password", TEST_USER.password);
   await Promise.all([
     page.waitForURL("**/simulasi"),
     page.click('button[type="submit"]'),
@@ -91,8 +94,10 @@ async function run(browser: Browser) {
   await context.close();
 }
 
-main().catch((error) => {
+resetAuthRateLimits()
+  .then(() => main())
+  .catch((error) => {
   console.error("INTERACTIVE CHECK GAGAL");
   console.error(error);
   process.exitCode = 1;
-});
+}).finally(() => disconnectFixtures());

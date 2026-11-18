@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/layout/page-header";
+import { Pagination } from "@/components/layout/pagination";
 import { formatDate, initials, percentage, timeAgo } from "@/lib/utils";
 import {
   LogoutButton,
@@ -35,12 +36,26 @@ import {
   ProfilePasswordForm,
 } from "@/components/auth/profile-forms";
 
-export default async function ProfilePage() {
+const HISTORY_PAGE_SIZE = 10;
+
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ riwayat?: string }>;
+}) {
   const user = await requireUser();
   const rank = getRank(user.xp);
+  const query = await searchParams;
+  const requestedPage = Number.parseInt(query.riwayat ?? "1", 10);
+  const historyPage = Number.isFinite(requestedPage)
+    ? Math.max(1, requestedPage)
+    : 1;
 
   const [
     attempts,
+    totalCompleted,
+    safeTotal,
+    latestAttempt,
     assessments,
     badges,
     moduleProgress,
@@ -58,7 +73,19 @@ export default async function ProfilePage() {
         },
       },
       orderBy: { completedAt: "desc" },
-      take: 30,
+      skip: (historyPage - 1) * HISTORY_PAGE_SIZE,
+      take: HISTORY_PAGE_SIZE,
+    }),
+    prisma.simulationAttempt.count({
+      where: { userId: user.id, status: "COMPLETED" },
+    }),
+    prisma.simulationAttempt.count({
+      where: { userId: user.id, status: "COMPLETED", outcome: "SAFE" },
+    }),
+    prisma.simulationAttempt.findFirst({
+      where: { userId: user.id, status: "COMPLETED" },
+      include: { scenario: { select: { slug: true } } },
+      orderBy: { completedAt: "desc" },
     }),
     prisma.assessment.findMany({
       where: { userId: user.id },
@@ -79,11 +106,16 @@ export default async function ProfilePage() {
     prisma.user.count(),
   ]);
 
+  const historyTotalPages = Math.max(
+    1,
+    Math.ceil(totalCompleted / HISTORY_PAGE_SIZE),
+  );
+
   const preTest = assessments.find((item) => item.type === "PRE") ?? null;
   const postTest = assessments.find((item) => item.type === "POST") ?? null;
   const kabDelta =
     preTest && postTest ? postTest.kabIndex - preTest.kabIndex : null;
-  const safeCount = attempts.filter((item) => item.outcome === "SAFE").length;
+  const safeCount = safeTotal;
   const earnedBadges = new Set(badges.map((badge) => badge.badgeKey));
   const position = usersAhead + 1;
 
@@ -114,11 +146,11 @@ export default async function ProfilePage() {
                 <Trophy className="h-3 w-3" /> {rank.current.name}
               </Badge>
             </div>
-            <p className="mt-0.5 truncate text-[11.5px] text-white/50">{user.email}</p>
-            <p className="mt-2 max-w-lg text-[11px] leading-relaxed text-white/55">
+            <p className="mt-0.5 truncate text-[11.5px] text-white/65">{user.email}</p>
+            <p className="mt-2 max-w-lg text-[11px] leading-relaxed text-white/70">
               {rank.current.description}
             </p>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[10px] text-white/40">
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[10px] text-white/60">
               <span className="inline-flex items-center gap-1">
                 <Clock3 className="h-3 w-3" /> Bergabung {formatDate(user.createdAt)}
               </span>
@@ -131,12 +163,12 @@ export default async function ProfilePage() {
             </div>
           </div>
           <div className="w-full rounded-2xl bg-white/[0.07] p-3 sm:w-56">
-            <div className="flex items-center justify-between text-[9.5px] text-white/50">
+            <div className="flex items-center justify-between text-[9.5px] text-white/65">
               <span>Level {rank.level}</span>
               <span>{rank.next ? `${rank.xpForNext} XP lagi` : "Puncak"}</span>
             </div>
             <Progress value={rank.progress} className="mt-1.5 h-2 bg-white/10" indicatorClassName="bg-[#65D4C2]" />
-            <p className="mt-2 text-[9px] text-white/35">
+            <p className="mt-2 text-[9px] text-white/55">
               {rank.next ? `Berikutnya: ${rank.next.name}` : "Pangkat tertinggi tercapai."}
             </p>
           </div>
@@ -144,7 +176,7 @@ export default async function ProfilePage() {
       </section>
 
       <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <StatTile label="Simulasi" value={attempts.length} suffix="selesai" hint={`${safeCount} aman`} tone="mint" />
+        <StatTile label="Simulasi" value={totalCompleted} suffix="selesai" hint={`${safeCount} aman`} tone="mint" />
         <StatTile label="Indeks KAB" value={postTest?.kabIndex ?? preTest?.kabIndex ?? "—"} suffix={postTest || preTest ? "/100" : undefined} hint={postTest ? "Post-test" : preTest ? "Pre-test" : "Belum diukur"} tone="butter" />
         <StatTile label="Lencana" value={badges.length} suffix={`/ ${BADGES.length}`} hint="koleksi terbuka" tone="lavender" />
         <StatTile label="Modul" value={moduleProgress.length} suffix={`/ ${moduleCount}`} hint="edukasi tuntas" tone="white" />
@@ -161,10 +193,10 @@ export default async function ProfilePage() {
                 Tambah latihan →
               </Link>
             </div>
-            {attempts.length === 0 ? (
+            {totalCompleted === 0 ? (
               <div className="mt-3 rounded-2xl bg-brand-cream/70 p-4 text-center">
                 <p className="text-[12px] font-bold">Belum ada simulasi selesai.</p>
-                <p className="mt-1 text-[10.5px] text-brand-ink/45">
+                <p className="mt-1 text-[10.5px] text-brand-ink/55">
                   Mulai dari satu skenario untuk mengisi radar dan riwayat.
                 </p>
                 <Button asChild size="sm" className="mt-3">
@@ -192,7 +224,7 @@ export default async function ProfilePage() {
                         <p className="truncate text-[11.5px] font-bold group-hover:text-primary">
                           {attempt.scenario.title}
                         </p>
-                        <p className="text-[9px] text-brand-ink/40">
+                        <p className="text-[9px] text-brand-ink/55">
                           {formatDate(attempt.completedAt ?? attempt.startedAt, true)} · skor {attempt.score} · +{attempt.xpEarned} XP
                         </p>
                       </div>
@@ -205,6 +237,12 @@ export default async function ProfilePage() {
                 })}
               </div>
             )}
+            <Pagination
+              page={Math.min(historyPage, historyTotalPages)}
+              totalPages={historyTotalPages}
+              basePath="/profil"
+              paramName="riwayat"
+            />
           </section>
 
           <section className="rounded-3xl border border-white bg-white p-4 shadow-card sm:p-5">
@@ -225,7 +263,7 @@ export default async function ProfilePage() {
                 ].map((item) => (
                   <div key={item.label} className="rounded-2xl bg-brand-cream/70 p-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-bold text-brand-ink/50">{item.label}</p>
+                      <p className="text-[10px] font-bold text-brand-ink/60">{item.label}</p>
                       <p className="text-[12px] font-extrabold">
                         {item.post ?? "—"}
                         {item.post !== undefined && item.post !== item.pre ? (
@@ -237,7 +275,7 @@ export default async function ProfilePage() {
                       </p>
                     </div>
                     <Progress value={item.post ?? item.pre} className="mt-1.5 h-1.5" />
-                    <p className="mt-1 text-[8.5px] text-brand-ink/35">Pre-test: {item.pre}</p>
+                    <p className="mt-1 text-[8.5px] text-brand-ink/50">Pre-test: {item.pre}</p>
                   </div>
                 ))}
               </div>
@@ -252,7 +290,7 @@ export default async function ProfilePage() {
                 </Button>
               </div>
             )}
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[9.5px] text-brand-ink/40">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[9.5px] text-brand-ink/55">
               <span>Indeks terakhir: <strong className="text-brand-ink/65">{postTest?.kabIndex ?? preTest?.kabIndex ?? "—"}</strong></span>
               {kabDelta !== null ? (
                 <span className={kabDelta >= 0 ? "text-primary" : "text-[#B91C2D]"}>
@@ -269,7 +307,7 @@ export default async function ProfilePage() {
               <h2 className="flex items-center gap-2 text-sm font-extrabold">
                 <BadgeCheck className="h-4 w-4 text-[#B58A00]" /> Koleksi lencana
               </h2>
-              <span className="text-[10px] font-semibold text-brand-ink/40">
+              <span className="text-[10px] font-semibold text-brand-ink/55">
                 {badges.length} dari {BADGES.length} terbuka
               </span>
             </div>
@@ -286,23 +324,23 @@ export default async function ProfilePage() {
             </h2>
             <ul className="mt-3 space-y-2 text-[11px]">
               <li className="flex items-center justify-between gap-2 rounded-xl bg-white/70 px-3 py-2">
-                <span className="text-brand-ink/55">Hasil aman</span>
-                <strong>{percentage(safeCount, attempts.length)}%</strong>
+                <span className="text-brand-ink/65">Hasil aman</span>
+                <strong>{percentage(safeTotal, totalCompleted)}%</strong>
               </li>
               <li className="flex items-center justify-between gap-2 rounded-xl bg-white/70 px-3 py-2">
-                <span className="text-brand-ink/55">Refleks benar</span>
+                <span className="text-brand-ink/65">Refleks benar</span>
                 <strong>
                   {correctReflex}/{totalReflex || 0}
                 </strong>
               </li>
               <li className="flex items-center justify-between gap-2 rounded-xl bg-white/70 px-3 py-2">
-                <span className="text-brand-ink/55">Modul tuntas</span>
+                <span className="text-brand-ink/65">Modul tuntas</span>
                 <strong>
                   {moduleProgress.length}/{moduleCount}
                 </strong>
               </li>
               <li className="flex items-center justify-between gap-2 rounded-xl bg-white/70 px-3 py-2">
-                <span className="text-brand-ink/55">Lencana</span>
+                <span className="text-brand-ink/65">Lencana</span>
                 <strong>{badges.length}</strong>
               </li>
             </ul>
@@ -323,7 +361,7 @@ export default async function ProfilePage() {
             <div className="my-4 h-px bg-brand-ink/[0.07]" />
             <ProfilePasswordForm />
             <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-brand-cream/70 px-3 py-2">
-              <p className="text-[10px] text-brand-ink/45">Keluar dari perangkat ini</p>
+              <p className="text-[10px] text-brand-ink/55">Keluar dari perangkat ini</p>
               <LogoutButton />
             </div>
           </section>
@@ -333,7 +371,7 @@ export default async function ProfilePage() {
               <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-amber-300">
                 <ShieldAlert className="h-3.5 w-3.5" /> Akses admin
               </p>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-white/55">
+              <p className="mt-1.5 text-[11px] leading-relaxed text-white/70">
                 Kelola publikasi skenario, level, dan estimasi waktu latihan.
               </p>
               <Button asChild variant="soft" size="sm" className="mt-3 w-full">
@@ -356,15 +394,15 @@ export default async function ProfilePage() {
         </aside>
       </div>
 
-      {attempts.length > 0 ? (
+      {totalCompleted > 0 && latestAttempt ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white bg-white/70 p-4">
           <div className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-lavender text-[#4C56A3]">
               <RotateCcw className="h-4 w-4" />
             </span>
             <div>
-              <p className="text-[12px] font-extrabold">Terakhir berlatih {timeAgo(attempts[0].completedAt ?? attempts[0].startedAt)}</p>
-              <p className="text-[10px] text-brand-ink/45">Ulangi skenario yang sama untuk menguji konsistensi.</p>
+              <p className="text-[12px] font-extrabold">Terakhir berlatih {timeAgo(latestAttempt.completedAt ?? latestAttempt.startedAt)}</p>
+              <p className="text-[10px] text-brand-ink/55">Ulangi skenario yang sama untuk menguji konsistensi.</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -374,7 +412,7 @@ export default async function ProfilePage() {
               </Link>
             </Button>
             <Button asChild size="sm">
-              <Link href={`/simulasi/${attempts[0].scenario.slug}`}>
+              <Link href={`/simulasi/${latestAttempt.scenario.slug}`}>
                 <CheckCircle2 className="h-3.5 w-3.5" /> Ulangi latihan terakhir
               </Link>
             </Button>
@@ -382,7 +420,7 @@ export default async function ProfilePage() {
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white bg-white/70 p-4">
-          <p className="flex items-center gap-2 text-[11.5px] font-semibold text-brand-ink/55">
+          <p className="flex items-center gap-2 text-[11.5px] font-semibold text-brand-ink/65">
             <BookOpenCheck className="h-4 w-4 text-primary" /> Belum ada riwayat. Baca modul
             singkat lalu coba satu skenario.
           </p>

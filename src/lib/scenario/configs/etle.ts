@@ -89,6 +89,7 @@ export const etleScenario: ScenarioSeed = {
               tone: "danger",
               next: "permission",
               verdict: "vulnerable",
+              categories: ["format_tautan", "tekanan_waktu"],
               feedback:
                 "Berkas .APK adalah aplikasi yang bisa meminta izin berbahaya, bukan surat tilang. Membukanya membuka jalan penyadapan SMS.",
             },
@@ -132,6 +133,7 @@ export const etleScenario: ScenarioSeed = {
               tone: "danger",
               next: null,
               verdict: "vulnerable",
+              categories: ["data_rahasia"],
               feedback:
                 "Izin SMS memberi aplikasi palsu akses ke kode OTP m-banking Anda. Ini adalah titik pencurian saldo.",
             },

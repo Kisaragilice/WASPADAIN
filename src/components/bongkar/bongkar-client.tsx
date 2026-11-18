@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -40,6 +40,8 @@ export function BongkarClient({
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [pending, setPending] = useState(false);
+  const [marking, setMarking] = useState(false);
+  const markedRef = useRef(false);
   const step = config.bongkar.steps[stepIndex];
   const scene = step ? getScene(config, step.sceneId) : undefined;
   const flags = useMemo(
@@ -48,6 +50,36 @@ export function BongkarClient({
   );
   const total = config.bongkar.steps.length;
   const isLast = stepIndex === total - 1;
+
+  const markBongkar = useCallback(async () => {
+    if (markedRef.current) return true;
+    markedRef.current = true;
+    setMarking(true);
+    try {
+      const response = await fetch(`/api/attempts/${attemptId}/bongkar`, {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      if (!response.ok) throw new Error("mark failed");
+      return true;
+    } catch {
+      markedRef.current = false;
+      return false;
+    } finally {
+      setMarking(false);
+    }
+  }, [attemptId]);
+
+  // Reviewing the final step counts as completing Mode Bongkar, which unlocks
+  // the post-test. The endpoint is idempotent.
+  useEffect(() => {
+    if (isLast) void markBongkar();
+  }, [isLast, markBongkar]);
+
+  const finish = async () => {
+    await markBongkar();
+    router.push(`/hasil/${attemptId}`);
+  };
 
   const previewScene = scene as
     | WhatsAppScene
@@ -126,7 +158,7 @@ export function BongkarClient({
             <h1 className="mt-0.5 text-lg font-extrabold leading-tight sm:text-xl">
               {step.title}
             </h1>
-            <p className="mt-0.5 text-[10.5px] text-brand-ink/50">
+            <p className="mt-0.5 text-[10.5px] text-brand-ink/60">
               Ketuk alur di bawah untuk memahami trik manipulasi penipu.
             </p>
           </div>
@@ -161,7 +193,7 @@ export function BongkarClient({
             <Badge variant={outcome === "SAFE" ? "safe" : "danger"}>
               {outcome === "SAFE" ? "Vonis: Aman" : "Vonis: Rentan"}
             </Badge>
-            <span className="text-[9px] font-medium text-brand-ink/40">
+            <span className="text-[9px] font-medium text-brand-ink/55">
               Layar tadi kita tandai
             </span>
           </div>
@@ -199,7 +231,7 @@ export function BongkarClient({
                       <span className="inline-flex items-center gap-1 rounded-full bg-brand-blush px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-[#B91C2D]">
                         <Flag className="h-3 w-3" /> {flag.label}
                       </span>
-                      <span className="text-[9px] font-semibold text-brand-ink/35">
+                      <span className="text-[9px] font-semibold text-brand-ink/50">
                         Langkah {stepIndex + 1} dari {total}
                       </span>
                     </div>
@@ -229,7 +261,7 @@ export function BongkarClient({
                             <p className="text-[10.5px] font-bold text-[#0B5E54]">
                               {flag.compare.goodTitle}
                             </p>
-                            <p className="mt-0.5 text-[10.5px] leading-relaxed text-brand-ink/55">
+                            <p className="mt-0.5 text-[10.5px] leading-relaxed text-brand-ink/65">
                               {flag.compare.good}
                             </p>
                           </div>
@@ -240,7 +272,7 @@ export function BongkarClient({
                             <p className="text-[10.5px] font-bold text-[#B91C2D]">
                               {flag.compare.badTitle}
                             </p>
-                            <p className="mt-0.5 text-[10.5px] leading-relaxed text-brand-ink/55">
+                            <p className="mt-0.5 text-[10.5px] leading-relaxed text-brand-ink/65">
                               {flag.compare.bad}
                             </p>
                           </div>
@@ -254,7 +286,7 @@ export function BongkarClient({
 
             {isLast ? (
               <div className="mt-4 rounded-2xl bg-[#F7F4EA] p-3.5">
-                <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-brand-ink/50">
+                <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-brand-ink/60">
                   <Sparkles className="h-3.5 w-3.5 text-primary" /> Inti yang perlu diingat
                 </p>
                 <ul className="mt-2 space-y-1.5">
@@ -289,10 +321,14 @@ export function BongkarClient({
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               ) : (
-                <Button asChild className="flex-1">
-                  <Link href={`/hasil/${attemptId}`}>
-                    Selesai & lihat intinya <ArrowRight className="h-4 w-4" />
-                  </Link>
+                <Button
+                  type="button"
+                  className="flex-1"
+                  onClick={finish}
+                  disabled={marking || pending}
+                >
+                  {marking ? "Menyimpan..." : "Selesai & lihat intinya"}
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -329,7 +365,7 @@ export function BongkarClient({
         </AnimatePresence>
       </div>
 
-      <p className="mt-4 text-center text-[9.5px] text-brand-ink/35">
+      <p className="mt-4 text-center text-[9.5px] text-brand-ink/50">
         Umpan balik non-punitif · kesalahan adalah bahan belajar, bukan alasan mempermalukan.
       </p>
     </div>

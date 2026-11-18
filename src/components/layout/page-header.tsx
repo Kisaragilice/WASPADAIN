@@ -23,7 +23,7 @@ export function PageHeader({
         {backHref ? (
           <Link
             href={backHref}
-            className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-ink/55 transition hover:text-brand-ink"
+            className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-ink/65 transition hover:text-brand-ink"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Kembali
           </Link>

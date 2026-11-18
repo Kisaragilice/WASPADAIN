@@ -47,7 +47,7 @@ export default async function ModulesPage() {
           <p className="flex items-center gap-2 text-[12px] font-extrabold">
             <Library className="h-4 w-4 text-primary" /> Progres belajar
           </p>
-          <p className="text-[10px] text-brand-ink/45">
+          <p className="text-[10px] text-brand-ink/55">
             {completed.size} dari {modules.length} modul tuntas
           </p>
         </div>
@@ -58,7 +58,7 @@ export default async function ModulesPage() {
         {nextModule ? (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-brand-cream p-3.5">
             <div className="min-w-0">
-              <p className="text-[9px] font-bold uppercase tracking-wide text-brand-ink/35">
+              <p className="text-[9px] font-bold uppercase tracking-wide text-brand-ink/50">
                 Lanjutkan di sini
               </p>
               <p className="truncate text-[13px] font-extrabold">{nextModule.title}</p>
@@ -103,10 +103,10 @@ export default async function ModulesPage() {
                   <h2 className="mt-1.5 text-[15.5px] font-extrabold leading-snug group-hover:text-primary">
                     {module.title}
                   </h2>
-                  <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-brand-ink/55">
+                  <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-brand-ink/65">
                     {module.summary}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[9.5px] font-semibold text-brand-ink/40">
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[9.5px] font-semibold text-brand-ink/55">
                     <span className="inline-flex items-center gap-1">
                       <Clock3 className="h-3 w-3" /> {module.readingMinutes} menit
                     </span>

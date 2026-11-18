@@ -1,4 +1,12 @@
 import { chromium, type Browser, type Page } from "playwright";
+import { resetAuthRateLimits } from "./reset-rate-limits";
+import {
+  ensureTestUser,
+  ensureTestAdmin,
+  TEST_USER,
+  TEST_ADMIN,
+  disconnectFixtures,
+} from "./test-fixtures";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3100";
 const OUT = "/tmp/opencode/waspadain-shots";
@@ -90,7 +98,7 @@ async function runContext(browser: Browser, viewport: (typeof VIEWPORTS)[number]
     await audit(page, "public", path, viewport.width);
   }
 
-  await login(page, "warga@waspadain.id", "Waspada#2026", "/simulasi");
+  await login(page, TEST_USER.email, TEST_USER.password, "/simulasi");
   results.push(`PASS  login warga @${viewport.width}px`);
   console.log(`PASS  login warga @${viewport.width}px`);
 
@@ -105,7 +113,7 @@ async function runContext(browser: Browser, viewport: (typeof VIEWPORTS)[number]
     locale: "id-ID",
   });
   const adminPage = await adminContext.newPage();
-  await login(adminPage, "admin@waspadain.id", "Waspada#2026", "/admin");
+  await login(adminPage, TEST_ADMIN.email, TEST_ADMIN.password, "/admin");
   for (const path of ADMIN_PAGES) {
     await audit(adminPage, "admin", path, viewport.width);
   }
@@ -113,6 +121,9 @@ async function runContext(browser: Browser, viewport: (typeof VIEWPORTS)[number]
 }
 
 async function main() {
+  await ensureTestUser();
+  await ensureTestAdmin();
+  await resetAuthRateLimits();
   const browser = await chromium.launch();
   try {
     for (const viewport of VIEWPORTS) {
@@ -130,4 +141,4 @@ main().catch((error) => {
   console.error("\nRESPONSIVE CHECK GAGAL");
   console.error(error);
   process.exitCode = 1;
-});
+}).finally(() => disconnectFixtures());

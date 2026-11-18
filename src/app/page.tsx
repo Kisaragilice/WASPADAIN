@@ -111,19 +111,19 @@ export default async function LandingPage() {
           <nav className="hidden items-center gap-1 md:flex" aria-label="Navigasi beranda">
             <a
               href="#fitur"
-              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold text-brand-ink/60 transition hover:bg-white hover:text-brand-ink"
+              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold text-brand-ink/65 transition hover:bg-white hover:text-brand-ink"
             >
               Fitur
             </a>
             <a
               href="#cara"
-              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold text-brand-ink/60 transition hover:bg-white hover:text-brand-ink"
+              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold text-brand-ink/65 transition hover:bg-white hover:text-brand-ink"
             >
               Cara kerja
             </a>
             <a
               href="#modus"
-              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold text-brand-ink/60 transition hover:bg-white hover:text-brand-ink"
+              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold text-brand-ink/65 transition hover:bg-white hover:text-brand-ink"
             >
               Modus
             </a>
@@ -166,7 +166,7 @@ export default async function LandingPage() {
                   <span className="absolute inset-x-0 bottom-1 -z-10 h-3 rounded-full bg-brand-butter sm:h-4" />
                 </span>
               </h1>
-              <p className="mt-4 max-w-lg text-[13.5px] leading-relaxed text-brand-ink/60 sm:text-[15px]">
+              <p className="mt-4 max-w-lg text-[13.5px] leading-relaxed text-brand-ink/65 sm:text-[15px]">
                 Kenali pola jebakan penipu lewat simulasi yang aman. Ceritanya berganti-ganti,{" "}
                 <span className="rounded bg-brand-blush px-1 font-semibold text-[#B91C2D]">
                   polanya itu-itu aja
@@ -188,7 +188,7 @@ export default async function LandingPage() {
                 </Button>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[10.5px] font-semibold text-brand-ink/45">
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[10.5px] font-semibold text-brand-ink/55">
                 <span className="inline-flex items-center gap-1.5">
                   <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Gratis untuk belajar
                 </span>
@@ -287,7 +287,7 @@ export default async function LandingPage() {
                     <p className="text-2xl font-extrabold tracking-tight">{stat.value}</p>
                     <Icon className="h-4 w-4 text-primary/50" />
                   </div>
-                  <p className="mt-0.5 text-[10px] font-semibold text-brand-ink/45">{stat.label}</p>
+                  <p className="mt-0.5 text-[10px] font-semibold text-brand-ink/55">{stat.label}</p>
                 </div>
               );
             })}
@@ -302,7 +302,7 @@ export default async function LandingPage() {
             <h2 className="mt-1.5 text-[28px] font-extrabold leading-tight tracking-[-0.03em] sm:text-[36px]">
               Empat lapis latihan yang saling menguatkan
             </h2>
-            <p className="mt-2 text-[12.5px] leading-relaxed text-brand-ink/55 sm:text-[14px]">
+            <p className="mt-2 text-[12.5px] leading-relaxed text-brand-ink/65 sm:text-[14px]">
               Dari mengenali pesan, membongkar taktik, sampai mengukur kebiasaan. Semua
               dalam satu alur yang bisa diulang.
             </p>
@@ -319,7 +319,7 @@ export default async function LandingPage() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <h3 className="mt-3 text-[14.5px] font-extrabold leading-snug">{feature.title}</h3>
-                  <p className="mt-1.5 text-[11.5px] leading-relaxed text-brand-ink/55">
+                  <p className="mt-1.5 text-[11.5px] leading-relaxed text-brand-ink/65">
                     {feature.body}
                   </p>
                 </div>
@@ -357,12 +357,12 @@ export default async function LandingPage() {
                       <span className="text-[18px] font-extrabold text-white/15">{step.number}</span>
                     </div>
                     <p className="mt-3 text-[13px] font-extrabold text-white">{step.title}</p>
-                    <p className="mt-1 text-[10.5px] leading-relaxed text-white/50">{step.body}</p>
+                    <p className="mt-1 text-[10.5px] leading-relaxed text-white/65">{step.body}</p>
                   </div>
                 );
               })}
             </div>
-            <p className="mt-4 flex items-center gap-1.5 text-[9.5px] text-white/35">
+            <p className="mt-4 flex items-center gap-1.5 text-[9.5px] text-white/55">
               <Clock3 className="h-3 w-3 text-emerald-300" /> Satu sesi inti bisa diselesaikan
               dalam sekitar 15–20 menit.
             </p>
@@ -378,7 +378,7 @@ export default async function LandingPage() {
               <h2 className="mt-1.5 text-[28px] font-extrabold leading-tight tracking-[-0.03em] sm:text-[36px]">
                 Dekat dengan ponselmu, jauh dari aman
               </h2>
-              <p className="mt-2 text-[12.5px] leading-relaxed text-brand-ink/55">
+              <p className="mt-2 text-[12.5px] leading-relaxed text-brand-ink/65">
                 Skenario dibuat menyerupai pesan yang bisa masuk besok pagi: tilang, poin
                 bank, pajak, kurir, dan QRIS. Semua nomor, domain, dan dokumen fiktif.
               </p>
@@ -419,7 +419,7 @@ export default async function LandingPage() {
                       </span>
                       <div className="min-w-0">
                         <p className="text-[12.5px] font-extrabold leading-snug">{pattern.title}</p>
-                        <p className="text-[9.5px] font-semibold uppercase tracking-wide text-brand-ink/35">
+                        <p className="text-[9.5px] font-semibold uppercase tracking-wide text-brand-ink/50">
                           {pattern.tag}
                         </p>
                       </div>
@@ -455,7 +455,7 @@ export default async function LandingPage() {
               <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-primary">
                 <BadgeCheck className="h-3.5 w-3.5" /> Untuk siapa?
               </p>
-              <ul className="mt-2.5 space-y-2 text-[11px] font-semibold text-brand-ink/55">
+              <ul className="mt-2.5 space-y-2 text-[11px] font-semibold text-brand-ink/65">
                 <li className="flex items-center gap-2">
                   <GraduationCap className="h-3.5 w-3.5 text-primary" /> Pelajar & mahasiswa
                 </li>
@@ -480,7 +480,7 @@ export default async function LandingPage() {
             <h2 className="relative mt-3 text-[26px] font-extrabold leading-tight tracking-[-0.03em] sm:text-[34px]">
               Jadilah perisai manusia, bukan korban berikutnya.
             </h2>
-            <p className="relative mx-auto mt-2 max-w-xl text-[12px] leading-relaxed text-brand-ink/55 sm:text-[13px]">
+            <p className="relative mx-auto mt-2 max-w-xl text-[12px] leading-relaxed text-brand-ink/65 sm:text-[13px]">
               Mulai dari pre-test singkat, lalu ambil satu skenario hari ini. Pola yang
               kamu kenali hari ini bisa menyelamatkan tabunganmu besok.
             </p>
@@ -502,9 +502,9 @@ export default async function LandingPage() {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-2.5">
             <BrandWordmark markClassName="h-7 w-7" />
-            <span className="text-[10px] text-brand-ink/35">Latihan anti-modus digital</span>
+            <span className="text-[10px] text-brand-ink/50">Latihan anti-modus digital</span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] font-semibold text-brand-ink/40">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] font-semibold text-brand-ink/55">
             <Link href="/masuk" className="hover:text-brand-ink">
               Masuk
             </Link>

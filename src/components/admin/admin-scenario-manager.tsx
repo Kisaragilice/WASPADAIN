@@ -163,10 +163,10 @@ export function AdminScenarioManager({ initialScenarios }: { initialScenarios: A
                     <span className="text-[9px] font-semibold text-brand-ink/30">{scenario.slug}</span>
                   </div>
                   <h3 className="mt-1.5 text-[14px] font-extrabold leading-snug">{scenario.title}</h3>
-                  <p className="mt-0.5 line-clamp-2 text-[10.5px] leading-relaxed text-brand-ink/50">
+                  <p className="mt-0.5 line-clamp-2 text-[10.5px] leading-relaxed text-brand-ink/60">
                     {scenario.description}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] font-semibold text-brand-ink/40">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] font-semibold text-brand-ink/55">
                     <span className="inline-flex items-center gap-1">
                       <Layers className="h-3 w-3" /> Level {scenario.level}
                     </span>
@@ -184,7 +184,7 @@ export function AdminScenarioManager({ initialScenarios }: { initialScenarios: A
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <div className="flex items-center gap-1.5">
                     {pending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-ink/40" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-ink/55" />
                     ) : scenario.isPublished ? (
                       <Eye className="h-3.5 w-3.5 text-primary" />
                     ) : (
@@ -296,7 +296,7 @@ export function AdminScenarioManager({ initialScenarios }: { initialScenarios: A
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-brand-cream/70 px-3.5 py-3">
               <div>
                 <p className="text-[11.5px] font-bold">Tampilkan di katalog</p>
-                <p className="text-[9.5px] text-brand-ink/45">
+                <p className="text-[9.5px] text-brand-ink/55">
                   Jika dimatikan, skenario menjadi draf dan tidak bisa dimainkan.
                 </p>
               </div>

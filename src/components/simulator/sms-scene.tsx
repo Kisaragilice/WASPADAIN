@@ -55,14 +55,14 @@ export function SmsThread({
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1 truncate text-[13px] font-extrabold">
               {scene.sender.name}
-              <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-brand-ink/30 text-[7px] font-bold text-brand-ink/50">
+              <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-brand-ink/30 text-[7px] font-bold text-brand-ink/60">
                 i
               </span>
             </p>
-            <p className="truncate text-[9.5px] text-brand-ink/50">{scene.sender.subtitle}</p>
+            <p className="truncate text-[9.5px] text-brand-ink/60">{scene.sender.subtitle}</p>
           </div>
-          <Search className="h-4 w-4 text-brand-ink/55" />
-          <MoreVertical className="h-4 w-4 text-brand-ink/55" />
+          <Search className="h-4 w-4 text-brand-ink/65" />
+          <MoreVertical className="h-4 w-4 text-brand-ink/65" />
         </div>
       </div>
 
@@ -79,14 +79,14 @@ export function SmsThread({
             <p className="text-[10px] font-bold text-brand-ink/75">
               {scene.sender.note ?? "Pengirim tidak tersimpan dalam kontak Anda."}
             </p>
-            <p className="text-[9px] leading-relaxed text-brand-ink/45">
+            <p className="text-[9px] leading-relaxed text-brand-ink/55">
               Berhati-hatilah terhadap permintaan data pribadi.
             </p>
           </div>
         </div>
 
         <div className="my-2 flex justify-center">
-          <span className="rounded-full bg-[#DCE7F7] px-3 py-1 text-[9px] font-bold uppercase tracking-wide text-brand-ink/45">
+          <span className="rounded-full bg-[#DCE7F7] px-3 py-1 text-[9px] font-bold uppercase tracking-wide text-brand-ink/55">
             {scene.timeLabel}
           </span>
         </div>
@@ -100,14 +100,14 @@ export function SmsThread({
         <span className="rounded-full bg-[#D6E4F5] px-2.5 py-1.5 text-[9px] font-bold text-[#1D4E89]">
           SIM 1
         </span>
-        <span className="flex flex-1 items-center rounded-full bg-white px-3 py-2 text-[10px] text-brand-ink/40">
+        <span className="flex flex-1 items-center rounded-full bg-white px-3 py-2 text-[10px] text-brand-ink/55">
           {scene.composer ?? "Ketik pesan SMS..."}
         </span>
-        <Smartphone className="h-4 w-4 text-brand-ink/35" />
-        <Camera className="h-4 w-4 text-brand-ink/35" />
+        <Smartphone className="h-4 w-4 text-brand-ink/50" />
+        <Camera className="h-4 w-4 text-brand-ink/50" />
       </div>
 
-      <div className="flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/55">
+      <div className="flex items-center justify-center gap-2 bg-[#101B2D] px-3 py-2 text-[9px] text-white/70">
         <ShieldAlert className="h-3 w-3 text-amber-300" />
         Ruang simulasi · pengirim dan nomor bersifat sintetis
       </div>
@@ -127,7 +127,7 @@ function SmsBubble({
     return (
       <div className="my-2 rounded-2xl bg-white p-3 text-[11px] shadow-sm">
         <p className="font-bold">{message.fileName}</p>
-        <p className="text-[9px] text-brand-ink/45">
+        <p className="text-[9px] text-brand-ink/55">
           {message.fileType} · {message.fileSize}
         </p>
       </div>
@@ -145,7 +145,7 @@ function SmsBubble({
         ) : (
           <Linkified text={message.text} />
         )}
-        <p className="mt-1.5 text-right text-[8px] text-brand-ink/35">{message.time}</p>
+        <p className="mt-1.5 text-right text-[8px] text-brand-ink/50">{message.time}</p>
       </div>
     </div>
   );

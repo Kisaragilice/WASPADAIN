@@ -49,3 +49,36 @@ export function timeAgo(value: Date | string) {
   if (days < 30) return `${days} hari lalu`;
   return formatDate(date);
 }
+
+/**
+ * Allows only same-origin relative paths for post-login navigation.
+ * Rejects protocol-relative URLs, backslashes (which browsers may normalize
+ * into `//host`), control characters, and absolute external URLs.
+ */
+export function sanitizeNextPath(
+  value: string | null | undefined,
+  fallback?: string,
+): string | undefined {
+  if (!value) return fallback;
+  if (value.length > 512) return fallback;
+  if (value.includes("\\")) return fallback;
+  if (/[\u0000-\u001f\u007f]/.test(value)) return fallback;
+  if (!value.startsWith("/") || value.startsWith("//")) return fallback;
+
+  const base = "https://waspadain.invalid";
+  try {
+    const url = new URL(value, base);
+    if (url.origin !== base) return fallback;
+    if (url.username || url.password) return fallback;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return fallback;
+  }
+}
+
+export function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  );
+}

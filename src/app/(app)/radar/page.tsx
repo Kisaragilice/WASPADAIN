@@ -137,7 +137,7 @@ export default async function RadarPage() {
             <h2 className="flex items-center gap-2 text-sm font-extrabold">
               <Target className="h-4 w-4 text-primary" /> Peta ketahanan kognitif
             </h2>
-            <span className="text-[9px] text-brand-ink/35">0–100</span>
+            <span className="text-[9px] text-brand-ink/50">0–100</span>
           </div>
           <RadarChart data={data} />
           <div className="mt-1 space-y-1.5">
@@ -152,7 +152,7 @@ export default async function RadarPage() {
                   <Icon className="h-3.5 w-3.5 shrink-0 text-primary" />
                   <div className="min-w-0 flex-1">
                     <p className="text-[10.5px] font-bold">{category?.label}</p>
-                    <p className="truncate text-[8.5px] text-brand-ink/40">
+                    <p className="truncate text-[8.5px] text-brand-ink/55">
                       {item.measured
                         ? `${item.vulnerable} dari ${item.exposures} latihan terpapar`
                         : "Belum ada latihan pada parameter ini"}
@@ -163,7 +163,7 @@ export default async function RadarPage() {
               );
             })}
           </div>
-          <p className="mt-3 rounded-xl bg-[#EEF3FD] px-3 py-2 text-[9px] leading-relaxed text-brand-ink/45">
+          <p className="mt-3 rounded-xl bg-[#EEF3FD] px-3 py-2 text-[9px] leading-relaxed text-brand-ink/55">
             Nilai 50 berarti netral karena parameter belum terukur. Lakukan simulasi
             terkait untuk mendapat gambaran yang lebih tepat.
           </p>
@@ -204,7 +204,7 @@ export default async function RadarPage() {
             <h2 className="flex items-center gap-2 text-sm font-extrabold">
               <GraduationCap className="h-4 w-4 text-primary" /> Latihan yang disarankan
             </h2>
-            <p className="mt-1 text-[10.5px] text-brand-ink/45">
+            <p className="mt-1 text-[10.5px] text-brand-ink/55">
               Berdasarkan parameter dengan kesiapan terendah.
             </p>
             <div className="mt-3 space-y-2">
@@ -222,7 +222,7 @@ export default async function RadarPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-bold">{category?.label}</p>
-                      <p className="text-[9px] text-brand-ink/40">
+                      <p className="text-[9px] text-brand-ink/55">
                         {category?.description}
                       </p>
                     </div>
@@ -249,7 +249,7 @@ export default async function RadarPage() {
             <h2 className="mt-1 text-xl font-extrabold text-white">
               Kecepatan melapor menentukan hasil.
             </h2>
-            <p className="mt-1.5 max-w-2xl text-[11.5px] leading-relaxed text-white/55">
+            <p className="mt-1.5 max-w-2xl text-[11.5px] leading-relaxed text-white/70">
               Makin cepat laporan masuk, makin besar peluang dana diselamatkan. Ikuti
               tiga langkah berikut tanpa menunggu.
             </p>
@@ -285,12 +285,12 @@ export default async function RadarPage() {
                   <Icon className="h-4 w-4" />
                 </span>
                 <p className="mt-2 text-[12px] font-extrabold text-white">{step.title}</p>
-                <p className="mt-1 text-[10.5px] leading-relaxed text-white/55">{step.body}</p>
+                <p className="mt-1 text-[10.5px] leading-relaxed text-white/70">{step.body}</p>
               </div>
             );
           })}
         </div>
-        <p className="mt-3 flex items-center gap-1.5 text-[9px] text-white/35">
+        <p className="mt-3 flex items-center gap-1.5 text-[9px] text-white/55">
           <ShieldCheck className="h-3 w-3 text-emerald-300" />
           Ini panduan edukasi, bukan pengganti bantuan resmi. Segera hubungi bank dan
           pihak berwenang.
@@ -312,10 +312,10 @@ export default async function RadarPage() {
                 return (
                   <div key={item.label}>
                     <div className="flex items-center justify-between text-[10px]">
-                      <span className="font-semibold text-brand-ink/60">{item.label}</span>
+                      <span className="font-semibold text-brand-ink/65">{item.label}</span>
                       <span
                         className={`font-bold ${
-                          delta > 0 ? "text-primary" : delta < 0 ? "text-[#B91C2D]" : "text-brand-ink/40"
+                          delta > 0 ? "text-primary" : delta < 0 ? "text-[#B91C2D]" : "text-brand-ink/55"
                         }`}
                       >
                         {item.pre} → {item.post} ({delta > 0 ? "+" : ""}
@@ -333,14 +333,14 @@ export default async function RadarPage() {
                   </div>
                 );
               })}
-              <p className="text-[9px] text-brand-ink/35">
+              <p className="text-[9px] text-brand-ink/50">
                 Kiri: pre-test · Kanan: post-test. Perubahan menjadi bahan evaluasi
                 latihan berikutnya.
               </p>
             </div>
           ) : (
             <div className="mt-3">
-              <p className="text-[11.5px] leading-relaxed text-brand-ink/50">
+              <p className="text-[11.5px] leading-relaxed text-brand-ink/60">
                 {preTest
                   ? "Post-test belum diisi. Setelah minimal satu simulasi, ukur kembali pengetahuan, sikap, dan perilakumu."
                   : "Isi pre-test KAB agar perubahan pengetahuan, sikap, dan perilaku bisa diukur."}

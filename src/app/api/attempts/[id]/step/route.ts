@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { apiError, parseBody } from "@/lib/api";
 import { attemptStepSchema } from "@/lib/validators";
 import { submitStep } from "@/lib/attempt";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(
   request: Request,
@@ -10,6 +11,13 @@ export async function POST(
 ) {
   const user = await getCurrentUser();
   if (!user) return apiError("Silakan masuk terlebih dahulu.", 401);
+
+  const limit = await checkRateLimit({
+    key: `attempt-step:${user.id}`,
+    limit: 240,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
 
   const parsed = await parseBody(request, attemptStepSchema);
   if ("response" in parsed) return parsed.response;
@@ -31,6 +39,7 @@ export async function POST(
   if (result.completed) {
     return NextResponse.json({
       completed: true,
+      alreadyCompleted: result.alreadyCompleted ?? false,
       outcome: result.outcome,
       score: result.score,
       xpEarned: result.xpEarned,

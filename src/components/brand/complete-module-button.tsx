@@ -58,7 +58,7 @@ export function CompleteModuleButton({
         <p className="flex items-center justify-center gap-1.5 text-[12px] font-bold text-[#0B5E54]">
           <CheckCircle2 className="h-4 w-4" /> Modul ini sudah tuntas
         </p>
-        <p className="mt-1 text-[10px] text-brand-ink/45">
+        <p className="mt-1 text-[10px] text-brand-ink/55">
           Kamu bisa membaca ulang kapan saja. Pengetahuan ini tetap terbuka.
         </p>
       </div>

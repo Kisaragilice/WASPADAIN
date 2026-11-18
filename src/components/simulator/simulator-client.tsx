@@ -65,6 +65,7 @@ export function SimulatorClient({
   const completed = active && store.completed;
   const result = active ? store.result : null;
   const feedback = active ? store.feedback : null;
+  const error = active ? store.error : null;
   const channelMeta = CHANNEL_META[channel];
   const ChannelIcon = channelMeta.icon;
   const tip =
@@ -158,6 +159,26 @@ export function SimulatorClient({
             </div>
           ) : null}
 
+          {error ? (
+            <div
+              role="alert"
+              className="mb-4 flex flex-wrap items-center gap-2.5 rounded-2xl border border-[#F3CDD2] bg-brand-blush p-3.5 text-[12px] leading-relaxed text-[#B91C2D]"
+            >
+              <TriangleAlert className="h-4 w-4 shrink-0" />
+              <p className="min-w-0 flex-1">{error}</p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="border-[#B91C2D]/20 bg-white/70 text-[#B91C2D] hover:bg-white hover:text-[#B91C2D]"
+                onClick={() => void store.retry()}
+                disabled={pending || !store.lastAction}
+              >
+                Coba lagi
+              </Button>
+            </div>
+          ) : null}
+
           {completed && result ? (
             <div className="rounded-3xl border border-white bg-white p-5 shadow-card">
               <div className="flex items-start gap-3">
@@ -181,7 +202,7 @@ export function SimulatorClient({
                       ? "Aman! Simulasi selesai."
                       : "Simulasi selesai — saatnya belajar."}
                   </p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-brand-ink/60">
+                  <p className="mt-1 text-[12px] leading-relaxed text-brand-ink/65">
                     {result.feedback}
                   </p>
                 </div>
@@ -189,13 +210,13 @@ export function SimulatorClient({
 
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="rounded-2xl bg-brand-cream p-3 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/40">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/55">
                     Skor
                   </p>
                   <p className="text-xl font-extrabold">{result.score}</p>
                 </div>
                 <div className="rounded-2xl bg-brand-cream p-3 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/40">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/55">
                     XP diperoleh
                   </p>
                   <p className="text-xl font-extrabold">+{result.xpEarned}</p>
@@ -224,7 +245,7 @@ export function SimulatorClient({
               <button
                 type="button"
                 onClick={() => setDismissedResult(false)}
-                className="mt-2 w-full text-center text-[10.5px] font-semibold text-brand-ink/45 underline-offset-2 hover:underline"
+                className="mt-2 w-full text-center text-[10.5px] font-semibold text-brand-ink/55 underline-offset-2 hover:underline"
               >
                 Buka lagi ringkasan hasil
               </button>
@@ -272,7 +293,7 @@ export function SimulatorClient({
                 <ChannelIcon className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-brand-ink/40">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-brand-ink/55">
                   Kanal simulasi
                 </p>
                 <p className="text-sm font-extrabold">{channelMeta.label}</p>
@@ -290,13 +311,13 @@ export function SimulatorClient({
             ) : null}
             <dl className="mt-4 grid grid-cols-2 gap-2 text-[11px]">
               <div className="rounded-xl bg-brand-cream p-2.5">
-                <dt className="flex items-center gap-1 text-brand-ink/45">
+                <dt className="flex items-center gap-1 text-brand-ink/55">
                   <Clock3 className="h-3 w-3" /> Estimasi
                 </dt>
                 <dd className="mt-0.5 font-bold">{estimatedMinutes} menit</dd>
               </div>
               <div className="rounded-xl bg-brand-cream p-2.5">
-                <dt className="flex items-center gap-1 text-brand-ink/45">
+                <dt className="flex items-center gap-1 text-brand-ink/55">
                   <TriangleAlert className="h-3 w-3" /> Level
                 </dt>
                 <dd className="mt-0.5 font-bold">Level {level}</dd>
@@ -323,7 +344,7 @@ export function SimulatorClient({
             <h2 className="flex items-center gap-2 text-sm font-extrabold">
               <BookOpenCheck className="h-4 w-4 text-primary" /> Alur latihan
             </h2>
-            <ol className="mt-3 space-y-2.5 text-[11.5px] text-brand-ink/60">
+            <ol className="mt-3 space-y-2.5 text-[11.5px] text-brand-ink/65">
               {[
                 "Amati pesan, tautan, dan permintaan datanya.",
                 "Pilih tindakan yang paling aman.",
@@ -373,13 +394,13 @@ export function SimulatorClient({
 
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-2xl bg-brand-cream p-3 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/40">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/55">
                 Skor
               </p>
               <p className="text-xl font-extrabold">{result?.score ?? 0}</p>
             </div>
             <div className="rounded-2xl bg-brand-cream p-3 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/40">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-brand-ink/55">
                 XP diperoleh
               </p>
               <p className="text-xl font-extrabold">+{result?.xpEarned ?? 0}</p>
@@ -407,13 +428,13 @@ export function SimulatorClient({
             <Button
               type="button"
               variant="ghost"
-              className="w-full text-brand-ink/55"
+              className="w-full text-brand-ink/65"
               onClick={() => setDismissedResult(true)}
             >
               Tutup ringkasan
             </Button>
           </div>
-          <p className="text-center text-[10px] text-brand-ink/40">
+          <p className="text-center text-[10px] text-brand-ink/55">
             Mode Bongkar wajib dipelajari agar pola jebakan ini melekat.
           </p>
         </DialogContent>

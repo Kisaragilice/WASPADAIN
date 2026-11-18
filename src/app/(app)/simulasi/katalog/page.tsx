@@ -111,7 +111,7 @@ export default async function CatalogPage({
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-brand-ink/45">
+        <p className="text-[11px] font-semibold text-brand-ink/55">
           Menampilkan {scenarios.length} skenario
         </p>
         <Link
@@ -125,7 +125,7 @@ export default async function CatalogPage({
       {scenarios.length === 0 ? (
         <div className="mt-3 rounded-3xl border border-dashed border-brand-ink/15 bg-white/60 p-8 text-center">
           <p className="text-sm font-bold">Tidak ada skenario yang cocok.</p>
-          <p className="mt-1 text-[11px] text-brand-ink/50">
+          <p className="mt-1 text-[11px] text-brand-ink/60">
             Coba hapus filter atau gunakan kata kunci lain.
           </p>
           <Button asChild variant="outline" className="mt-3">
@@ -155,7 +155,7 @@ export default async function CatalogPage({
         <h2 className="mt-1 text-lg font-extrabold text-white">
           Latihan tanpa risiko, literasi tanpa menghakimi.
         </h2>
-        <p className="mt-1.5 max-w-2xl text-[11.5px] leading-relaxed text-white/55">
+        <p className="mt-1.5 max-w-2xl text-[11.5px] leading-relaxed text-white/70">
           Kami tidak mengirim pesan nyata, tidak menjalankan malware, dan tidak
           mengumpulkan kredensial asli. Semua nomor, situs, dan dokumen adalah data
           sintetis untuk pembelajaran.

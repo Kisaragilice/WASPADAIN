@@ -19,7 +19,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <BrandWordmark />
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-2 text-[11px] font-bold text-brand-ink/60 transition hover:bg-white hover:text-brand-ink"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-2 text-[11px] font-bold text-brand-ink/65 transition hover:bg-white hover:text-brand-ink"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Beranda
             </Link>
@@ -32,7 +32,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <h1 className="mt-4 text-[42px] font-extrabold leading-[1.05] tracking-[-0.04em]">
               Latih refleks sebelum penipu menelepon.
             </h1>
-            <p className="mt-3 max-w-md text-[13.5px] leading-relaxed text-brand-ink/55">
+            <p className="mt-3 max-w-md text-[13.5px] leading-relaxed text-brand-ink/65">
               Simulasi multikanal, Mode Bongkar, dan pengukuran KAB dalam satu ruang
               latihan yang aman. Tidak ada pesan nyata, malware, atau permintaan data
               pribadi.
@@ -55,7 +55,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-semibold text-brand-ink/40">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-semibold text-brand-ink/55">
             <span className="inline-flex items-center gap-1">
               <Brain className="h-3.5 w-3.5" /> 12 butir KAB
             </span>
@@ -76,7 +76,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               </Link>
               <Link
                 href="/"
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-2 text-[10.5px] font-bold text-brand-ink/55"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-2 text-[10.5px] font-bold text-brand-ink/65"
               >
                 <ArrowLeft className="h-3.5 w-3.5" /> Beranda
               </Link>

@@ -133,7 +133,7 @@ export function KabTest({
           <Lock className="h-6 w-6" />
         </div>
         <h2 className="mt-3 text-lg font-extrabold">Post-test masih terkunci</h2>
-        <p className="mx-auto mt-1.5 max-w-md text-[12px] leading-relaxed text-brand-ink/55">
+        <p className="mx-auto mt-1.5 max-w-md text-[12px] leading-relaxed text-brand-ink/65">
           {locked}
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -164,9 +164,9 @@ export function KabTest({
             {type === "PRE" ? "Pre-test" : "Post-test"} selesai
           </p>
           <h2 className="mt-1 text-3xl font-extrabold">{result.kabIndex}</h2>
-          <p className="text-[11px] font-semibold text-brand-ink/45">Indeks KAB dari 100</p>
+          <p className="text-[11px] font-semibold text-brand-ink/55">Indeks KAB dari 100</p>
           {delta !== null ? (
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-[10px] font-bold text-brand-ink/60">
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-[10px] font-bold text-brand-ink/65">
               {delta >= 0 ? "+" : ""}
               {delta} poin dibanding {type === "PRE" ? "pre-test" : "pre-test sebelumnya"}
             </p>
@@ -192,7 +192,7 @@ export function KabTest({
           })}
         </div>
 
-        <div className="rounded-3xl border border-white bg-white p-4 text-[11.5px] leading-relaxed text-brand-ink/55 shadow-card">
+        <div className="rounded-3xl border border-white bg-white p-4 text-[11.5px] leading-relaxed text-brand-ink/65 shadow-card">
           {type === "PRE"
             ? "Pre-test menjadi garis dasar. Setelah berlatih dan membongkar modus, isi post-test untuk mengukur perubahan."
             : "Post-test menjadi bahan evaluasi. Bandingkan skor dengan pre-test dan radar untuk menentukan latihan berikutnya."}
@@ -221,7 +221,7 @@ export function KabTest({
   return (
     <div className="space-y-3">
       <div className="rounded-2xl bg-white p-3.5 shadow-card">
-        <div className="flex items-center justify-between text-[10px] font-semibold text-brand-ink/45">
+        <div className="flex items-center justify-between text-[10px] font-semibold text-brand-ink/55">
           <span>
             {answered} dari {total} pertanyaan terjawab
           </span>
@@ -243,7 +243,7 @@ export function KabTest({
               </span>
               <div>
                 <h2 className="text-[15px] font-extrabold">{dimension.label}</h2>
-                <p className="text-[10.5px] text-brand-ink/45">{dimension.description}</p>
+                <p className="text-[10.5px] text-brand-ink/55">{dimension.description}</p>
               </div>
               <Badge variant="secondary" className="ml-auto shrink-0">
                 {dimension.questions.length} butir
@@ -280,7 +280,7 @@ export function KabTest({
                               "min-h-[40px] rounded-xl border px-3 py-2 text-[11px] font-bold transition",
                               value === option.answer
                                 ? "border-primary bg-brand-mint text-[#0B5E54]"
-                                : "border-brand-ink/10 bg-white text-brand-ink/55 hover:border-primary/30",
+                                : "border-brand-ink/10 bg-white text-brand-ink/65 hover:border-primary/30",
                             )}
                           >
                             {option.label}
@@ -305,7 +305,7 @@ export function KabTest({
                               "flex min-h-[44px] flex-col items-center justify-center rounded-xl border px-1 text-[9px] font-bold transition",
                               value === option.value
                                 ? "border-primary bg-brand-mint text-[#0B5E54]"
-                                : "border-brand-ink/10 bg-white text-brand-ink/40 hover:border-primary/30",
+                                : "border-brand-ink/10 bg-white text-brand-ink/55 hover:border-primary/30",
                             )}
                           >
                             <span className="text-sm">{option.value}</span>
@@ -330,7 +330,7 @@ export function KabTest({
             <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
               <ShieldCheck className="h-3.5 w-3.5" /> {type === "PRE" ? "Garis dasar" : "Pengukuran akhir"}
             </p>
-            <p className="mt-1 text-[11px] text-white/50">
+            <p className="mt-1 text-[11px] text-white/65">
               {answered < total
                 ? `Masih ada ${total - answered} pertanyaan yang belum dijawab.`
                 : "Semua pertanyaan sudah dijawab. Simpan untuk melihat hasilmu."}
@@ -358,7 +358,7 @@ export function KabTest({
       </div>
 
       {previous ? (
-        <div className="flex items-start gap-2 rounded-2xl bg-white/70 p-3 text-[10.5px] text-brand-ink/50">
+        <div className="flex items-start gap-2 rounded-2xl bg-white/70 p-3 text-[10.5px] text-brand-ink/60">
           {type === "PRE" ? (
             <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#B58A00]" />
           ) : (

@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { hash } from "bcryptjs";
 import { SCENARIO_SEEDS, assertScenarioConfig } from "../src/lib/scenario";
-import { scoreKab } from "../src/lib/kab";
 
 const prisma = new PrismaClient();
 
@@ -211,120 +209,7 @@ async function main() {
     });
   }
 
-  const passwordHash = await hash("Waspada#2026", 12);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@waspadain.id" },
-    update: { role: "ADMIN" },
-    create: {
-      name: "Admin Waspadain",
-      email: "admin@waspadain.id",
-      passwordHash,
-      role: "ADMIN",
-      xp: 120,
-    },
-  });
-
-  const demo = await prisma.user.upsert({
-    where: { email: "warga@waspadain.id" },
-    update: {},
-    create: {
-      name: "Rani Prameswari",
-      email: "warga@waspadain.id",
-      passwordHash,
-      xp: 145,
-    },
-  });
-
-  const demoAttempts = await prisma.simulationAttempt.count({
-    where: { userId: demo.id },
-  });
-
-  if (demoAttempts === 0) {
-    const etle = await prisma.scenario.findUnique({ where: { slug: "etle-apk" } });
-    const sms = await prisma.scenario.findUnique({ where: { slug: "sms-poin-bank" } });
-    if (etle && sms) {
-      await prisma.simulationAttempt.create({
-        data: {
-          userId: demo.id,
-          scenarioId: etle.id,
-          variantIndex: 0,
-          status: "COMPLETED",
-          outcome: "SAFE",
-          score: 100,
-          xpEarned: 60,
-          redFlagsIdentified: 3,
-          redFlagsTotal: 3,
-          vulnerableCategories: [],
-          startedAt: new Date(Date.now() - 1000 * 60 * 60 * 26),
-          completedAt: new Date(Date.now() - 1000 * 60 * 60 * 25),
-        },
-      });
-      await prisma.simulationAttempt.create({
-        data: {
-          userId: demo.id,
-          scenarioId: sms.id,
-          variantIndex: 1,
-          status: "COMPLETED",
-          outcome: "VULNERABLE",
-          score: 0,
-          xpEarned: 15,
-          redFlagsIdentified: 0,
-          redFlagsTotal: 2,
-          vulnerableCategories: ["umpan_hadiah", "data_rahasia"],
-          startedAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
-          completedAt: new Date(Date.now() - 1000 * 60 * 60 * 7),
-        },
-      });
-      await prisma.userBadge.createMany({
-        data: [
-          { userId: demo.id, badgeKey: "detektif-apk", scenarioId: etle.id },
-          { userId: demo.id, badgeKey: "pelapor-cepat", scenarioId: etle.id },
-        ],
-        skipDuplicates: true,
-      });
-    }
-
-    const answers = {
-      k1: false,
-      k2: false,
-      k3: true,
-      k4: false,
-      a1: 2,
-      a2: 4,
-      a3: 2,
-      a4: 5,
-      b1: 3,
-      b2: 2,
-      b3: 4,
-      b4: 3,
-    };
-    const scored = scoreKab(answers);
-    await prisma.assessment.create({
-      data: {
-        userId: demo.id,
-        type: "PRE",
-        answers,
-        knowledge: scored.knowledge,
-        attitude: scored.attitude,
-        behavior: scored.behavior,
-        kabIndex: scored.kabIndex,
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
-      },
-    });
-
-    const firstModule = await prisma.educationModule.findUnique({
-      where: { slug: "format-berkas" },
-    });
-    if (firstModule) {
-      await prisma.moduleProgress.create({
-        data: { userId: demo.id, moduleId: firstModule.id },
-      });
-    }
-  }
-
-  console.log("Seed selesai:", {
-    admin: admin.email,
-    demo: demo.email,
+  console.log("Seed katalog selesai.", {
     scenarios: SCENARIO_SEEDS.length,
     modules: MODULES.length,
   });

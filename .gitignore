@@ -4,8 +4,13 @@ out
 build
 .env
 .env.local
+.env.docker
+.env.*.local
 .DS_Store
 *.log
 tsconfig.tsbuildinfo
 next-env.d.ts
 coverage
+backups/
+.vscode/
+session-*.json

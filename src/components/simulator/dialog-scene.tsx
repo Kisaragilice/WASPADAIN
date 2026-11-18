@@ -45,7 +45,7 @@ export function DialogSceneView({
           <h2 className="mt-3 text-[17px] font-extrabold leading-snug text-brand-ink">
             {scene.permissionTitle}
           </h2>
-          <p className="mt-2 text-[11.5px] leading-relaxed text-brand-ink/60">
+          <p className="mt-2 text-[11.5px] leading-relaxed text-brand-ink/65">
             {scene.permissionBody}
           </p>
 
@@ -81,7 +81,7 @@ export function DialogSceneView({
           <h3 className="mt-2 text-[16px] font-extrabold leading-tight text-brand-ink">
             Awas jebakan pencuri saldo!
           </h3>
-          <p className="mt-1.5 text-[11px] leading-relaxed text-brand-ink/60">
+          <p className="mt-1.5 text-[11px] leading-relaxed text-brand-ink/65">
             Di dunia nyata, menekan <strong className="text-[#B91C2D]">Izinkan</strong> membuat
             berkas .APK ini menyadap SMS dan mencuri kode OTP m-banking Anda secara otomatis.
           </p>

@@ -64,6 +64,7 @@ export const resiScenario: ScenarioSeed = {
               tone: "danger",
               next: "browser",
               verdict: "vulnerable",
+              categories: ["format_tautan", "otoritas_palsu"],
               feedback:
                 "Tautan mengarah ke domain {{domain}}, bukan kanal resmi kurir. Data dan uang Anda bisa diambil di sana.",
             },
@@ -143,6 +144,7 @@ export const resiScenario: ScenarioSeed = {
               tone: "danger",
               next: null,
               verdict: "vulnerable",
+              categories: ["umpan_hadiah", "tekanan_waktu", "data_rahasia"],
               feedback:
                 "Uang Anda masuk ke rekening penipu, sementara KTP bisa dipakai membuka pinjaman atau akun ilegal.",
             },

@@ -9,13 +9,13 @@ import {
   Loader2,
   Lock,
   Mail,
-  ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeNextPath } from "@/lib/utils";
 
 type Mode = "login" | "register";
 
@@ -71,9 +71,7 @@ export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
           : `Selamat datang kembali, ${data.user?.name ?? "Warga"}.`,
       );
       const target =
-        next && next.startsWith("/") && !next.startsWith("//")
-          ? next
-          : (data.redirectTo ?? "/simulasi");
+        sanitizeNextPath(next) ?? data.redirectTo ?? "/simulasi";
 
       // A hard navigation is deliberate: it avoids the App Router race where
       // push() + refresh() can be cancelled, and it guarantees the new session
@@ -131,8 +129,15 @@ export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
         <div className="flex items-center justify-between gap-2">
           <Label htmlFor="password">Kata sandi</Label>
           {isRegister ? (
-            <span className="text-[10px] font-medium text-brand-ink/40">Minimal 8 karakter</span>
-          ) : null}
+            <span className="text-[10px] font-medium text-brand-ink/65">Minimal 8 karakter</span>
+          ) : (
+            <Link
+              href="/lupa-password"
+              className="text-[10.5px] font-semibold text-primary hover:underline"
+            >
+              Lupa kata sandi?
+            </Link>
+          )}
         </div>
         <div className="relative">
           <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink/30" />
@@ -153,7 +158,7 @@ export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
             type="button"
             onClick={() => setShowPassword((current) => !current)}
             aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
-            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-brand-ink/40 transition hover:bg-brand-ink/5 hover:text-brand-ink"
+            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-brand-ink/55 transition hover:bg-brand-ink/5 hover:text-brand-ink"
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
@@ -183,7 +188,7 @@ export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
         )}
       </Button>
 
-      <div className="text-center text-[11.5px] text-brand-ink/50">
+      <div className="text-center text-[11.5px] text-brand-ink/60">
         {isRegister ? (
           <>
             Sudah punya akun?{" "}
@@ -201,24 +206,12 @@ export function AuthForm({ mode, next }: { mode: Mode; next?: string }) {
         )}
       </div>
 
-      {!isRegister ? (
-        <div className="rounded-2xl bg-brand-cream/70 p-3 text-[10px] leading-relaxed text-brand-ink/45">
-          <p className="flex items-center gap-1.5 font-bold text-brand-ink/60">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Akun demo
-          </p>
-          <p className="mt-1">
-            Warga: <span className="font-semibold">warga@waspadain.id</span> · Admin:{" "}
-            <span className="font-semibold">admin@waspadain.id</span>
-            <br />
-            Kata sandi: <span className="font-semibold">Waspada#2026</span>
-          </p>
-        </div>
-      ) : (
-        <p className="text-center text-[10px] leading-relaxed text-brand-ink/40">
+      {isRegister ? (
+        <p className="text-center text-[10px] leading-relaxed text-brand-ink/65">
           Dengan mendaftar, kamu memahami bahwa seluruh isi simulasi bersifat edukatif dan
           menggunakan data sintetis.
         </p>
-      )}
+      ) : null}
     </form>
   );
 }

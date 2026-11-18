@@ -1,5 +1,21 @@
 import { SCENARIO_SEEDS } from "../src/lib/scenario";
+import { KAB_QUESTIONS } from "../src/lib/kab";
 import type { ScenarioConfig, ScenarioScene } from "../src/lib/scenario/types";
+import { ensureTestUser, disconnectFixtures } from "./test-fixtures";
+
+function kabAnswers() {
+  const answers: Record<string, number | boolean> = {};
+  for (const question of KAB_QUESTIONS) {
+    if (question.type === "boolean") {
+      answers[question.id] = Boolean(question.correct);
+    } else if (question.reverse) {
+      answers[question.id] = 1;
+    } else {
+      answers[question.id] = 5;
+    }
+  }
+  return answers;
+}
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3100";
 
@@ -47,12 +63,21 @@ function safeAction(scene: ScenarioScene) {
 }
 
 async function main() {
+  const creds = await ensureTestUser();
   const jar: Jar = new Map();
   await request("/api/auth/login", jar, {
     method: "POST",
-    body: JSON.stringify({ email: "warga@waspadain.id", password: "Waspada#2026" }),
+    body: JSON.stringify({ email: creds.email, password: creds.password }),
   });
-  console.log("PASS  login demo");
+  console.log("PASS  login fixture uji");
+
+  // Complete the pre-test once so the simulation catalog is unlocked; repeated
+  // runs reuse the existing attempt and stay idempotent.
+  await request("/api/assessments", jar, {
+    method: "POST",
+    body: JSON.stringify({ type: "PRE", answers: kabAnswers() }),
+    expected: 201,
+  });
 
   for (const seed of SCENARIO_SEEDS) {
     const config = seed.config as ScenarioConfig;
@@ -104,4 +129,4 @@ main().catch((error) => {
   console.error("SCENARIO CHECK GAGAL");
   console.error(error);
   process.exitCode = 1;
-});
+}).finally(() => disconnectFixtures());

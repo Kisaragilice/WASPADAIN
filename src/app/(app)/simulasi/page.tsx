@@ -228,7 +228,7 @@ export default async function DashboardPage() {
             <h1 className="max-w-xl text-[30px] font-extrabold leading-[1.08] tracking-[-0.035em] sm:text-[38px]">
               Jangan tunggu kena tipu baru belajar.
             </h1>
-            <p className="mt-2.5 max-w-xl text-[13.5px] leading-relaxed text-brand-ink/60">
+            <p className="mt-2.5 max-w-xl text-[13.5px] leading-relaxed text-brand-ink/65">
               Kenali pola jebakan penipu lewat simulasi interaktif yang aman.
               Ceritanya ganti-ganti,{" "}
               <span className="rounded bg-[#FCD5D9] px-1 font-semibold text-[#B91C2D]">
@@ -253,7 +253,7 @@ export default async function DashboardPage() {
                         <Icon className="h-4 w-4" />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[9px] font-bold uppercase tracking-wide text-brand-ink/45">
+                        <p className="text-[9px] font-bold uppercase tracking-wide text-brand-ink/55">
                           {pattern.title}
                         </p>
                         <p className="mt-0.5 text-[11.5px] font-extrabold leading-snug text-brand-ink sm:text-[12.5px]">
@@ -306,7 +306,7 @@ export default async function DashboardPage() {
                   <span className="text-primary">{coreDone} dari 3</span> situasi selesai
                 </p>
               </div>
-              <span className="text-[10px] font-medium text-brand-ink/40">
+              <span className="text-[10px] font-medium text-brand-ink/55">
                 nggak harus buru-buru
               </span>
             </div>
@@ -315,7 +315,7 @@ export default async function DashboardPage() {
               className="mt-2.5 h-2.5"
               indicatorClassName="bg-primary"
             />
-            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[9.5px] text-brand-ink/40">
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[9.5px] text-brand-ink/55">
               {scenarios
                 .filter((scenario) => CORE_SLUGS.includes(scenario.slug))
                 .map((scenario) => (
@@ -345,11 +345,11 @@ export default async function DashboardPage() {
                 <p className="mt-0.5 truncate text-[15px] font-extrabold sm:text-base">
                   {trending.title}
                 </p>
-                <p className="truncate text-[10.5px] text-brand-ink/50">
+                <p className="truncate text-[10.5px] text-brand-ink/60">
                   {trending.subtitle}
                 </p>
               </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-brand-ink/35 transition group-hover:translate-x-0.5" />
+              <ChevronRight className="h-5 w-5 shrink-0 text-brand-ink/50 transition group-hover:translate-x-0.5" />
             </Link>
           ) : null}
 
@@ -384,13 +384,13 @@ export default async function DashboardPage() {
                           {card.badge}
                         </Badge>
                       </div>
-                      <p className="truncate text-[10px] text-brand-ink/50">{card.subtitle}</p>
+                      <p className="truncate text-[10px] text-brand-ink/60">{card.subtitle}</p>
                       <p className="mt-0.5 text-[10px] font-bold text-primary">
                         {card.variants} variasi · {card.count} skenario
                         {card.completed > 0 ? ` · ${card.safe}/${card.completed} aman` : ""}
                       </p>
                     </div>
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-ink/[0.04] text-brand-ink/40 transition group-hover:bg-brand-mint group-hover:text-primary">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-ink/[0.04] text-brand-ink/55 transition group-hover:bg-brand-mint group-hover:text-primary">
                       <ChevronRight className="h-4 w-4" />
                     </span>
                   </Link>
@@ -409,7 +409,7 @@ export default async function DashboardPage() {
               <ShieldCheck className="h-4 w-4" /> 100% Simulasi Aman
               <span className="h-1 w-1 rounded-full bg-brand-ink/20" /> Bebas Malware
             </p>
-            <p className="mt-1 text-[10px] text-brand-ink/45">
+            <p className="mt-1 text-[10px] text-brand-ink/55">
               Tanpa meminta password, OTP, atau data pribadi apa pun.
             </p>
             <p className="mt-1 text-[9px] font-semibold uppercase tracking-wider text-brand-ink/30">
@@ -421,7 +421,7 @@ export default async function DashboardPage() {
         <aside className="hidden space-y-4 lg:block">
           <div className="overflow-hidden rounded-3xl bg-brand-ink p-5 text-white shadow-soft">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">
                 Kesiapsiagaan
               </p>
               <Sparkles className="h-4 w-4 text-amber-300" />
@@ -432,7 +432,7 @@ export default async function DashboardPage() {
               </p>
               <div className="pb-1">
                 <p className="text-[11px] font-semibold text-white/60">Indeks KAB</p>
-                <p className="text-[9px] text-white/35">
+                <p className="text-[9px] text-white/55">
                   {postTest ? "Post-test" : preTest ? "Pre-test" : "Belum diukur"}
                 </p>
               </div>
@@ -444,7 +444,7 @@ export default async function DashboardPage() {
                 { label: "Perilaku", value: postTest?.behavior ?? preTest?.behavior },
               ].map((item) => (
                 <div key={item.label}>
-                  <div className="flex justify-between text-[9.5px] text-white/50">
+                  <div className="flex justify-between text-[9.5px] text-white/65">
                     <span>{item.label}</span>
                     <span>{item.value ?? 0}%</span>
                   </div>
@@ -471,16 +471,16 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-extrabold">Pangkat bela negara digital</h2>
             </div>
             <p className="mt-2 text-lg font-extrabold text-primary">{rank.current.name}</p>
-            <p className="text-[11px] leading-relaxed text-brand-ink/50">
+            <p className="text-[11px] leading-relaxed text-brand-ink/60">
               {rank.current.description}
             </p>
-            <div className="mt-3 flex items-center justify-between text-[9.5px] text-brand-ink/45">
+            <div className="mt-3 flex items-center justify-between text-[9.5px] text-brand-ink/55">
               <span>{user.xp} XP</span>
               <span>{rank.next ? `${rank.xpForNext} XP lagi` : "Puncak"}</span>
             </div>
             <Progress value={rank.progress} className="mt-1.5 h-2" />
             {rank.next ? (
-              <p className="mt-2 text-[9.5px] text-brand-ink/40">
+              <p className="mt-2 text-[9.5px] text-brand-ink/55">
                 Berikutnya: {rank.next.name}
               </p>
             ) : null}

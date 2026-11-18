@@ -67,7 +67,7 @@ export function PhoneHomeSceneView({
             <span className="text-[10.5px] font-semibold text-primary">
               Ketuk untuk buka ruang obrolan
             </span>
-            <ChevronRight className="h-3.5 w-3.5 text-brand-ink/35" />
+            <ChevronRight className="h-3.5 w-3.5 text-brand-ink/50" />
           </div>
         </button>
       </div>

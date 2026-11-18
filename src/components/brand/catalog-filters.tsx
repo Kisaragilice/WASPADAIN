@@ -133,7 +133,7 @@ function FilterChip({
         "min-h-[32px] shrink-0 rounded-full border px-3 py-1 text-[10.5px] font-semibold transition",
         active
           ? "border-brand-ink bg-brand-ink text-white"
-          : "border-brand-ink/10 bg-white text-brand-ink/55 hover:border-brand-ink/20 hover:text-brand-ink",
+          : "border-brand-ink/10 bg-white text-brand-ink/65 hover:border-brand-ink/20 hover:text-brand-ink",
       )}
     >
       {children}

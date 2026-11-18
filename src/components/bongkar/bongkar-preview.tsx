@@ -48,7 +48,7 @@ export function BongkarPreview({
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11px] font-extrabold">{scene.contact.name}</p>
-            <p className="truncate text-[8.5px] text-brand-ink/45">{scene.contact.subtitle}</p>
+            <p className="truncate text-[8.5px] text-brand-ink/55">{scene.contact.subtitle}</p>
           </div>
           <FlagChip labels={flagLabels} />
         </div>
@@ -59,7 +59,7 @@ export function BongkarPreview({
             ),
           )}
         </div>
-        <p className="mt-1.5 flex items-center gap-1 text-[8px] text-brand-ink/35">
+        <p className="mt-1.5 flex items-center gap-1 text-[8px] text-brand-ink/50">
           <Lock className="h-2.5 w-2.5" /> Layar yang baru saja kamu lihat
         </p>
       </div>
@@ -75,7 +75,7 @@ export function BongkarPreview({
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-extrabold">{scene.sender.name}</p>
-            <p className="text-[8.5px] text-brand-ink/45">{scene.sender.subtitle} · {scene.timeLabel}</p>
+            <p className="text-[8.5px] text-brand-ink/55">{scene.sender.subtitle} · {scene.timeLabel}</p>
           </div>
           <FlagChip labels={flagLabels} />
         </div>
@@ -90,7 +90,7 @@ export function BongkarPreview({
               ) : null,
             )}
         </div>
-        <p className="mt-1.5 text-[8px] text-brand-ink/35">Pesan SMS sintetis · bukan pesan asli</p>
+        <p className="mt-1.5 text-[8px] text-brand-ink/50">Pesan SMS sintetis · bukan pesan asli</p>
       </div>
     );
   }
@@ -99,7 +99,7 @@ export function BongkarPreview({
     return (
       <div className={cn("overflow-hidden rounded-3xl border border-brand-ink/[0.06] bg-white p-3 shadow-sm", className)}>
         <div className="flex items-center justify-between gap-2 border-b border-brand-ink/[0.06] pb-2">
-          <p className="flex items-center gap-1.5 text-[9px] font-bold text-brand-ink/50">
+          <p className="flex items-center gap-1.5 text-[9px] font-bold text-brand-ink/60">
             <Mail className="h-3 w-3" /> Kotak masuk · {scene.time}
           </p>
           <FlagChip labels={flagLabels} />
@@ -148,8 +148,8 @@ export function BongkarPreview({
   return (
     <div className={cn("overflow-hidden rounded-3xl border border-brand-ink/[0.06] bg-white shadow-sm", className)}>
       <div className="flex items-center gap-1.5 bg-[#EEF2F8] px-2.5 py-2">
-        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[8px] text-brand-ink/40">‹</span>
-        <span className="min-w-0 flex-1 truncate rounded-full bg-white px-2 py-1 text-[8px] text-brand-ink/55">
+        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[8px] text-brand-ink/55">‹</span>
+        <span className="min-w-0 flex-1 truncate rounded-full bg-white px-2 py-1 text-[8px] text-brand-ink/65">
           <HighlightedText text={scene.url} terms={highlights} />
         </span>
         {flagLabels[0] ? (
@@ -171,7 +171,7 @@ export function BongkarPreview({
           </span>
           <div className="min-w-0">
             <p className="truncate text-[9px] font-black uppercase">{scene.brand.name}</p>
-            <p className="truncate text-[7px] uppercase tracking-wide text-brand-ink/40">
+            <p className="truncate text-[7px] uppercase tracking-wide text-brand-ink/55">
               {scene.brand.tagline}
             </p>
           </div>
@@ -185,7 +185,7 @@ export function BongkarPreview({
             .slice(0, 3)
             .map((field, index) => (
               <div key={index} className="rounded-lg bg-[#FFF5F6] px-2 py-1.5">
-                <p className="text-[7.5px] font-bold text-brand-ink/55">
+                <p className="text-[7.5px] font-bold text-brand-ink/65">
                   <HighlightedText text={field.label} terms={highlights} />
                 </p>
                 <p className="truncate text-[8.5px] text-brand-ink/70">
@@ -198,7 +198,7 @@ export function BongkarPreview({
           {scene.primaryCta}
         </div>
       </div>
-      <div className="flex items-center gap-1 bg-[#101B2D] px-2.5 py-1.5 text-[7px] text-white/50">
+      <div className="flex items-center gap-1 bg-[#101B2D] px-2.5 py-1.5 text-[7px] text-white/65">
         <ShieldAlert className="h-2.5 w-2.5 text-amber-300" /> Layar simulasi Waspadain
       </div>
     </div>

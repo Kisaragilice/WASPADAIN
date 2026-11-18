@@ -1,6 +1,8 @@
 import { chromium, type Browser, type Page } from "playwright";
+import { resetAuthRateLimits } from "./reset-rate-limits";
+import { ensureTestUser, TEST_USER, disconnectFixtures } from "./test-fixtures";
 
-const BASE = process.env.BASE_URL ?? "http://localhost:3200";
+const BASE = process.env.BASE_URL ?? "http://localhost:3100";
 const OUT = "/tmp/opencode/waspadain-shots";
 
 const consoleErrors: string[] = [];
@@ -11,8 +13,8 @@ function now() {
 
 async function login(page: Page) {
   await page.goto(`${BASE}/masuk`, { waitUntil: "networkidle" });
-  await page.fill("#email", "warga@waspadain.id");
-  await page.fill("#password", "Waspada#2026");
+  await page.fill("#email", TEST_USER.email);
+  await page.fill("#password", TEST_USER.password);
   const started = now();
   await Promise.all([
     page.waitForURL("**/simulasi", { timeout: 30000 }),
@@ -219,6 +221,8 @@ async function run(browser: Browser) {
 }
 
 async function main() {
+  await ensureTestUser();
+  await resetAuthRateLimits();
   const browser = await chromium.launch();
   try {
     await run(browser);
@@ -231,4 +235,4 @@ main().catch((error) => {
   console.error("PHASE 1 FIX CHECK GAGAL");
   console.error(error);
   process.exitCode = 1;
-});
+}).finally(() => disconnectFixtures());

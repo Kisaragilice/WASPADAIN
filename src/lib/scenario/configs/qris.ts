@@ -65,6 +65,7 @@ export const qrisScenario: ScenarioSeed = {
               tone: "danger",
               next: "browser",
               verdict: "vulnerable",
+              categories: ["format_tautan", "otoritas_palsu", "tekanan_waktu"],
               feedback:
                 "Tautan {{domain}} membuka situs verifikasi palsu yang akan meminta PIN dan OTP Anda.",
             },
@@ -145,6 +146,7 @@ export const qrisScenario: ScenarioSeed = {
               tone: "danger",
               next: null,
               verdict: "vulnerable",
+              categories: ["data_rahasia"],
               feedback:
                 "PIN dan OTP memberi penipu akses mentransfer saldo Anda. Tidak ada verifikasi merchant yang membutuhkannya.",
             },
