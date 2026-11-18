@@ -1,7 +1,10 @@
 node_modules
 .next
+out
+build
 .git
 .gitignore
+.github
 .env
 .env.*
 !.env.example
@@ -13,3 +16,7 @@ backups
 .vscode
 session-*.json
 coverage
+tests
+*.pdf
+*.md
+*.dump

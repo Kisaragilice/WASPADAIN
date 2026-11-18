@@ -1,5 +1,6 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -8,7 +9,8 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate && npm run build
+# `npm run build` sudah menjalankan `prisma generate`.
+RUN npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
@@ -32,6 +34,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 USER nextjs
 EXPOSE 3000
 
-# Only the catalog seed (scenarios + education modules) runs automatically.
-# Demo data and admin bootstrap are explicit, manual steps.
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run db:seed:catalog && npm start"]
+# Saat boot: jalankan migrasi, seed katalog (idempoten), lalu server.
+# `exec` membuat Next.js menerima sinyal SIGTERM langsung dari Docker.
+# Seed demo dan bootstrap admin tetap merupakan langkah manual.
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run db:seed:catalog && exec npm start"]

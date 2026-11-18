@@ -36,13 +36,51 @@ Buka <http://localhost:3000>. Database Docker diarahkan ke port host **5433** ag
 
 ```bash
 cp .env.docker.example .env.docker
-# isi AUTH_SECRET, POSTGRES_PASSWORD, APP_URL, dan (opsional) Resend
+# isi AUTH_SECRET, POSTGRES_PASSWORD, APP_URL (Resend opsional, boleh kosong)
 docker compose --env-file .env.docker up -d --build
 ```
 
-`APP_PORT` mengatur port host (default `3000`); port internal Next.js tetap `3000`. Contoh `APP_PORT=3100` membuat aplikasi tersedia di <http://localhost:3100>. Database hanya di-bind ke `127.0.0.1` sehingga tidak terekspos ke jaringan publik.
+Compose **tidak** membaca `.env.docker` secara otomatis, jadi flag `--env-file .env.docker` wajib disertakan di setiap perintah compose.
 
-Container aplikasi otomatis menjalankan `prisma migrate deploy` dan seed **katalog** saja. Tidak ada akun demo atau admin otomatis di production.
+`APP_HOST`/`APP_PORT` mengatur alamat bind dan port host; port internal Next.js tetap `3000`. Contoh `APP_PORT=3100` membuat aplikasi tersedia di <http://localhost:3100>. Di belakang reverse proxy pada host yang sama, set `APP_HOST=127.0.0.1` agar aplikasi tidak terbuka langsung ke jaringan. Database hanya di-bind ke `127.0.0.1` sehingga tidak terekspos ke publik.
+
+Container aplikasi otomatis menjalankan `prisma migrate deploy` dan seed **katalog** saja. Tidak ada akun demo atau admin otomatis di production. Health check container memakai `GET /api/health` yang juga memverifikasi koneksi database; cek status dengan `docker compose --env-file .env.docker ps`.
+
+Catatan operasional:
+
+- **Gunakan password DB yang URL-safe** (mis. `openssl rand -hex 32`). Password berisi `@ : / % #` merusak `DATABASE_URL`; jika perlu, gunakan `docker-compose.override.yml` untuk mengisi `DATABASE_URL` penuh (contoh ada di `.env.docker.example`).
+- **Password DB hanya berlaku saat volume dibuat.** Mengubah `POSTGRES_PASSWORD` setelah volume ada tidak mengubah password di dalam PostgreSQL dan membuat app gagal dengan error `P1000`. Untuk instalasi baru, hapus volume dengan `docker compose --env-file .env.docker down -v` (menghapus semua data) sebelum start ulang.
+- **Produksi wajib HTTPS.** Cookie sesi memakai prefix `__Host-` + `Secure`, jadi login tidak akan tersimpan bila diakses lewat `http://IP:3000`. Pasang reverse proxy (nginx/Caddy) dengan sertifikat, dan teruskan header `Host` serta `X-Forwarded-Proto` agar validasi origin aplikasi lolos.
+- Log container dibatasi `10 MB × 3` per service. Lihat log dengan `docker compose --env-file .env.docker logs -f app`.
+
+Contoh blok nginx minimal (sesuaikan domain dan path sertifikat):
+
+```nginx
+server {
+  listen 80;
+  server_name domain-anda.id;
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}
+
+server {
+  listen 443 ssl;
+  server_name domain-anda.id;
+
+  ssl_certificate     /etc/letsencrypt/live/domain-anda.id/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/domain-anda.id/privkey.pem;
+
+  location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
+```
 
 ### Bootstrap administrator
 
@@ -201,6 +239,7 @@ Screenshot uji disimpan di `/tmp/opencode/waspadain-shots`.
 | `APP_URL` | Produksi | URL publik http(s), dipakai untuk tautan reset password |
 | `POSTGRES_USER/PASSWORD/DB` | Docker | Kredensial container database |
 | `DB_PORT` | Tidak | Port loopback host untuk database (default `5433`) |
+| `APP_HOST` | Docker | Alamat bind host aplikasi (default `0.0.0.0`; pakai `127.0.0.1` di belakang reverse proxy) |
 | `APP_PORT` | Docker | Port host aplikasi (default `3000`; internal tetap `3000`) |
 | `RESEND_API_KEY` | Tidak | Aktifkan pengiriman email reset |
 | `RESEND_FROM_EMAIL` | Tidak | Pengirim terverifikasi di Resend (mis. `WASPADAIN <admin@domain-anda.id>`) |

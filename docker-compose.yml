@@ -1,3 +1,13 @@
+# WASPADAIN — stack produksi (PostgreSQL + Next.js)
+#
+#   cp .env.docker.example .env.docker
+#   # isi AUTH_SECRET, POSTGRES_PASSWORD, APP_URL
+#   docker compose --env-file .env.docker up -d --build
+#
+# Compose TIDAK membaca .env.docker secara otomatis. Selalu sertakan
+# --env-file .env.docker (atau salin nilainya ke .env jika lebih nyaman).
+name: waspadain
+
 services:
   db:
     image: postgres:16-alpine
@@ -6,39 +16,74 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-waspadain}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD wajib diisi di .env.docker}
       POSTGRES_DB: ${POSTGRES_DB:-waspadain}
-    # Loopback only: the database is never reachable from other machines.
-    # Host port 5433 avoids clashing with a locally installed PostgreSQL.
+      # Menghindari error "could not resize shared memory" saat query berat.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    # Loopback only: database tidak pernah terbuka ke jaringan publik.
+    # Port host 5433 menghindari bentrok dengan PostgreSQL lokal di 5432.
     ports:
       - "127.0.0.1:${DB_PORT:-5433}:5432"
     volumes:
       - waspadain_pgdata:/var/lib/postgresql/data
+    shm_size: "256mb"
     healthcheck:
+      # $$ membuat compose menunda interpolasi ke shell di dalam container,
+      # sehingga nilainya selalu sama dengan environment container.
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-waspadain} -d ${POSTGRES_DB:-waspadain}",
+          'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -h 127.0.0.1',
         ]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   app:
     build: .
     restart: unless-stopped
+    init: true
     depends_on:
       db:
         condition: service_healthy
     environment:
+      # Disusun dari POSTGRES_* agar satu sumber kebenaran. Untuk database
+      # eksternal, timpa lewat docker-compose.override.yml (lihat README).
       DATABASE_URL: postgresql://${POSTGRES_USER:-waspadain}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-waspadain}?schema=public
-      # No public fallback: compose refuses to start without a real secret.
+      # Tanpa fallback publik: compose menolak start tanpa secret asli.
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET wajib diisi dengan nilai acak minimal 32 karakter}
       APP_URL: ${APP_URL:-http://localhost:3000}
       NODE_ENV: production
+      # Opsional. Biarkan kosong bila email reset password tidak dipakai.
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
     ports:
-      # Internal Next.js port stays 3000; the host port is configurable.
-      - "${APP_PORT:-3000}:3000"
+      # Port internal Next.js selalu 3000. APP_HOST bisa diarahkan ke
+      # 127.0.0.1 bila aplikasi berada di belakang reverse proxy.
+      - "${APP_HOST:-0.0.0.0}:${APP_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      # Migrasi + seed katalog saat boot pertama bisa memakan waktu.
+      start_period: 90s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   waspadain_pgdata:
