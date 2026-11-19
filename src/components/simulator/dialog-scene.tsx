@@ -3,7 +3,6 @@
 import { AlertTriangle, ShieldAlert } from "lucide-react";
 import type { DialogScene } from "@/lib/scenario/types";
 import { StatusBar } from "./status-bar";
-import { cn } from "@/lib/utils";
 
 export function DialogSceneView({
   scene,
@@ -56,12 +55,7 @@ export function DialogSceneView({
                 type="button"
                 disabled={pending}
                 onClick={() => onChoose(choice.id)}
-                className={cn(
-                  "min-h-[42px] rounded-lg px-4 text-[11px] font-extrabold uppercase tracking-wide transition disabled:opacity-50",
-                  choice.tone === "safe"
-                    ? "text-[#0F7E70] hover:bg-brand-mint/50"
-                    : "bg-[#0F7E70] text-white hover:bg-[#0B6C61]",
-                )}
+                className="min-h-[42px] rounded-lg px-4 text-[11px] font-extrabold uppercase tracking-wide text-[#0F7E70] transition hover:bg-brand-mint/40 disabled:opacity-50"
               >
                 {choice.label}
               </button>

@@ -1,28 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle, Check, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
+import { ShieldAlert, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Decision } from "@/lib/scenario/types";
-
-const toneStyles = {
-  safe: {
-    button: "bg-primary text-white hover:bg-[#0b6c61]",
-    icon: ShieldCheck,
-    dot: "bg-emerald-400",
-  },
-  danger: {
-    button: "bg-[#E11D48] text-white hover:bg-[#be123c]",
-    icon: AlertTriangle,
-    dot: "bg-rose-300",
-  },
-  neutral: {
-    button: "bg-brand-ink text-white hover:bg-[#1b2c47]",
-    icon: Check,
-    dot: "bg-amber-300",
-  },
-} as const;
 
 export function DecisionPanel({
   decision,
@@ -75,24 +57,18 @@ export function DecisionPanel({
 
       <div className="mt-4 grid gap-2">
         {decision.choices.map((choice, index) => {
-          const style = toneStyles[choice.tone];
-          const Icon = style.icon;
           return (
             <Button
               key={choice.id}
               type="button"
-              variant="ghost"
+              variant="outline"
               disabled={pending}
               onClick={() => onChoose(choice.id)}
-              className={cn(
-                "h-auto min-h-[48px] w-full justify-start gap-3 rounded-2xl px-3.5 py-3 text-left text-[13px] font-semibold shadow-sm transition-transform hover:-translate-y-0.5",
-                style.button,
-              )}
+              className="h-auto min-h-[48px] w-full justify-start gap-3 rounded-2xl border-brand-ink/15 bg-white px-3.5 py-3 text-left text-[13px] font-semibold text-brand-ink shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-brand-mint/30"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-[11px] font-bold">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-mint text-[11px] font-bold text-primary">
                 {index + 1}
               </span>
-              <Icon className="h-4 w-4 shrink-0" />
               <span className="flex-1 whitespace-normal leading-snug">{choice.label}</span>
             </Button>
           );
