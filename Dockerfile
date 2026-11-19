@@ -21,7 +21,7 @@ ENV HOSTNAME=0.0.0.0
 
 LABEL org.opencontainers.image.title="waspadain" \
   org.opencontainers.image.description="Aplikasi latihan anti-modus penipuan digital" \
-  org.opencontainers.image.source="https://github.com/lrcims/waspadain"
+  org.opencontainers.image.source="https://github.com/Kisaragilice/WASPADAIN"
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
