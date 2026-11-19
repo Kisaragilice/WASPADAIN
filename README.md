@@ -528,3 +528,144 @@ Instrumen KAB memakai 12 butir yang diadaptasi dari kerangka HAIS-Q dengan tiga 
 - Panel admin baru mengelola metadata/publikasi; konfigurasi percakapan tetap lewat seed agar dapat ditinjau.
 - Uji browser Playwright berbagi satu database; untuk CI gunakan database sementara.
 - `next lint` sudah deprecated di Next.js 15; migrasi ke ESLint CLI dan Next.js 16 masih backlog.
+
+## 🚀 Server-Side Optimization Roadmap (Docker Compose)
+
+> **Status:** `Planned / Not Implemented`
+
+Bagian ini merupakan catatan rencana optimasi infrastruktur **WASPADAIN** untuk meningkatkan efisiensi penggunaan *resource* server, mengurangi *overhead* Docker, dan menjaga performa aplikasi ketika jumlah pengguna meningkat.
+
+Fokus optimasi berada pada sisi server dan *deployment* menggunakan **Docker Compose**, tanpa mengurangi fitur, keamanan, maupun fungsionalitas aplikasi.
+
+---
+
+### 1. Current Infrastructure
+
+#### Production Stack
+* **Frontend & SSR:** Next.js 15 + React 19
+* **Runtime:** Node.js 22 Alpine
+* **Language:** TypeScript
+* **Database:** PostgreSQL 16 Alpine
+* **ORM:** Prisma ORM 6
+* **Orchestration:** Docker Compose
+
+#### Baseline Resource Usage *(Server Monitoring Snapshot)*
+| Resource | Penggunaan |
+| :--- | :--- |
+| **Application Container** | `~128 MiB` RAM |
+| **PostgreSQL Container** | `~32 MiB` RAM |
+| **CPU Aplikasi (Idle)** | `~0.01%` |
+| **Total RAM (App + DB)** | `~160 MiB` |
+
+> **Catatan:** Angka di atas merupakan *snapshot* monitoring kondisi ringan, bukan hasil *benchmark* beban maksimum.
+
+---
+
+### 2. Optimization Checklist
+
+#### A. Docker Image Optimization
+* [ ] Evaluasi penggunaan Next.js `output: "standalone"`.
+* [ ] Optimalkan *production image* agar tidak membawa seluruh *development dependencies*.
+* [ ] Minimalkan jumlah file yang disalin ke dalam *production image*.
+* [ ] Evaluasi penggunaan *multi-stage build* yang lebih efisien.
+* [ ] Optimalkan aturan pada `.dockerignore`.
+* [ ] Bandingkan ukuran *image* sebelum dan sesudah optimasi.
+
+🎯 **Target:** Mengurangi ukuran *image*, waktu *build*, dan kebutuhan *storage deployment*.
+
+#### B. Container Resource Optimization
+* [ ] Evaluasi penggunaan RAM setiap *container* menggunakan `docker stats`.
+* [ ] Tentukan *memory limit* dan *CPU limit* yang sesuai untuk aplikasi dan database.
+* [ ] Evaluasi kebutuhan *heap memory* Node.js (`--max-old-space-size`).
+* [ ] Pastikan *container* tidak mengalami `OOMKilled`.
+* [ ] Evaluasi penggunaan `mem_reservation` dan `mem_limit`.
+* [ ] Pastikan alokasi *resource* tidak mengganggu *service* Docker lainnya di server.
+
+🎯 **Target:** Penggunaan *resource* lebih terkontrol tanpa mengorbankan stabilitas aplikasi.
+
+#### C. Next.js Production Runtime
+* [ ] Evaluasi konfigurasi Next.js *standalone output*.
+* [ ] Evaluasi penggunaan Node.js *production runtime*.
+* [ ] Optimalkan penggunaan *server-side rendering* (SSR).
+* [ ] Evaluasi strategi *caching* untuk data yang jarang berubah.
+* [ ] Hindari pekerjaan berat yang tidak diperlukan saat *startup* aplikasi.
+* [ ] Evaluasi penggunaan *worker* atau *background job* jika diperlukan.
+
+🎯 **Target:** Mengurangi *overhead runtime* dan mempercepat *response* aplikasi.
+
+#### D. Prisma & PostgreSQL Optimization
+* [ ] Audit *query* Prisma yang paling sering dieksekusi.
+* [ ] Identifikasi dan perbaiki potensi *N+1 query*.
+* [ ] Gunakan `select` agar hanya kolom yang dibutuhkan yang diambil.
+* [ ] Evaluasi *index* PostgreSQL berdasarkan pola *query* aktual.
+* [ ] Evaluasi manajemen koneksi database dan *connection pooling*.
+* [ ] Evaluasi konfigurasi `shared_buffers` dan memori PostgreSQL.
+* [ ] Optimalkan *query* untuk halaman *dashboard*, statistik, riwayat simulasi, dan panel admin.
+
+🎯 **Target:** Mengurangi beban database, penggunaan RAM, dan waktu eksekusi *query*.
+
+#### E. Docker Compose Optimization
+* [ ] Evaluasi *resource limits* untuk masing-masing *service*.
+* [ ] Pertahankan *logging rotation* agar file log tidak memenuhi *disk*.
+* [ ] Evaluasi konfigurasi `healthcheck` dan `restart` *policy*.
+* [ ] Pastikan setiap *service* hanya mengekspos *port* yang benar-benar diperlukan.
+* [ ] Evaluasi penggunaan *Docker network* internal.
+* [ ] Pastikan database tidak dapat diakses langsung dari jaringan publik.
+* [ ] Evaluasi strategi *backup* dan *recovery* untuk *volume* PostgreSQL.
+
+🎯 **Target:** Infrastruktur lebih ringan, aman, dan mudah dipelihara.
+
+#### F. Monitoring & Benchmarking
+* [ ] Dokumentasikan penggunaan RAM saat kondisi *idle*.
+* [ ] Ukur beban CPU saat aplikasi menerima *request*.
+* [ ] Ukur waktu respons (*response time*) API.
+* [ ] Uji aplikasi dengan beberapa skenario *concurrent users*.
+* [ ] Monitor jumlah koneksi aktif PostgreSQL.
+* [ ] Monitor penggunaan *disk* dan pertumbuhan *Docker logs*.
+* [ ] Bandingkan metrik performa sebelum dan sesudah optimasi.
+
+🎯 **Target:** Optimasi didasarkan pada hasil pengukuran nyata, bukan sekadar asumsi.
+
+---
+
+### 3. Optimization Principles
+
+Prinsip utama yang wajib dipertahankan selama proses optimasi:
+
+1. **Tidak menghilangkan** fitur aplikasi yang sudah tersedia.
+2. **Tidak menurunkan** standar keamanan autentikasi dan otorisasi.
+3. **Tidak menghapus** validasi di sisi server (*server-side validation*).
+4. **Tidak mengorbankan** integritas data pada PostgreSQL.
+5. **Tidak menambahkan** *service* eksternal baru (seperti Redis) tanpa kebutuhan dan justifikasi yang jelas.
+6. **Menguji seluruh perubahan** di lingkungan *staging*/lokal sebelum diterapkan ke *production*.
+7. **Selalu menyiapkan *backup* database** sebelum melakukan perubahan infrastruktur yang berisiko.
+8. **Membandingkan hasil *benchmark*** sebelum dan sesudah optimasi dilakukan.
+
+---
+
+### 4. Suggested Implementation Order
+
+| Priority | Task | Status |
+| :---: | :--- | :---: |
+| **1** | Audit Docker image dan *standalone build* | `Pending` |
+| **2** | Audit penggunaan RAM dan CPU *container* | `Pending` |
+| **3** | Optimasi *query* Prisma dan PostgreSQL | `Pending` |
+| **4** | Evaluasi *resource limits* Docker Compose | `Pending` |
+| **5** | Optimasi Next.js *production runtime* | `Pending` |
+| **6** | Monitoring dan *load testing* | `Pending` |
+| **7** | Evaluasi strategi *backup* dan *recovery* | `Pending` |
+
+---
+
+### 5. Expected Outcome
+
+* **Docker image** berukuran jauh lebih ringkas.
+* **Penggunaan RAM** lebih efisien dan terprediksi.
+* **CPU overhead** lebih rendah saat *idle* maupun beban aktif.
+* **Database** memproses *query* dengan latensi yang lebih rendah.
+* **Response time API** lebih cepat.
+* **Container** lebih stabil saat menangani lonjakan *request*.
+* **Infrastruktur** lebih siap menghadapi pertumbuhan jumlah pengguna.
+
+> [!IMPORTANT]
+> Seluruh poin di atas masih berstatus **rencana**. Hindari menetapkan *memory limit* terlalu rendah hanya demi mengejar angka penggunaan RAM yang kecil. Selalu prioritaskan **stabilitas, keamanan, dan performa aplikasi**.
