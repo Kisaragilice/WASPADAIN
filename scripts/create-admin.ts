@@ -5,6 +5,11 @@
  * Usage (password never stored in code or logs):
  *   ADMIN_EMAIL=admin@waspadain.id ADMIN_PASSWORD='...' npm run admin:create
  *   npm run admin:create            # prompts for the password interactively
+ *   ADMIN_EMAIL=admin@waspadain.id ADMIN_PASSWORD='...' npm run admin:reset
+ *
+ * `admin:reset` (or --reset) rotates the password of an existing admin and
+ * revokes every active session. Without the flag an existing password is
+ * never overwritten.
  *
  * The account is created with mustChangePassword=true so the initial password
  * must be replaced on first login.
@@ -15,6 +20,9 @@ import { createInterface } from "node:readline";
 
 const prisma = new PrismaClient();
 const BCRYPT_ROUNDS = 12;
+const args = new Set(process.argv.slice(2));
+const resetPassword =
+  args.has("--reset") || process.env.ADMIN_RESET_PASSWORD === "true";
 
 function readHidden(prompt: string): Promise<string> {
   return new Promise((resolve) => {
@@ -83,10 +91,38 @@ async function main() {
         `Akun ${email} sudah ada dengan peran ${existing.role}. Bootstrap tidak menaikkan peran secara diam-diam.`,
       );
     }
-    console.log("Admin sudah ada; kata sandi tidak diubah.", {
+    if (!resetPassword) {
+      console.log("Admin sudah ada; kata sandi tidak diubah.", {
+        email,
+        role: existing.role,
+      });
+      console.log(
+        "Untuk merotasi kata sandi admin: ADMIN_PASSWORD='...' npm run admin:reset",
+      );
+      return;
+    }
+
+    const password = await resolvePassword();
+    if (!password || password.length < 8) {
+      throw new Error("Kata sandi admin minimal 8 karakter.");
+    }
+    const passwordHash = await hash(password, BCRYPT_ROUNDS);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: existing.id },
+        data: { passwordHash, mustChangePassword: true },
+      }),
+      // Revoke every session so a stolen cookie cannot survive the rotation.
+      prisma.session.deleteMany({ where: { userId: existing.id } }),
+    ]);
+
+    console.log("Kata sandi admin diperbarui dan semua sesi dicabut:", {
       email,
       role: existing.role,
+      mustChangePassword: true,
     });
+    console.log("Ganti kata sandi awal saat login berikutnya. Hapus ADMIN_PASSWORD dari environment.");
     return;
   }
 

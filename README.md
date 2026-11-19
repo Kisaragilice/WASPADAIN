@@ -30,30 +30,136 @@ npm run admin:create     # bootstrap admin (opsional, diminta interaktif)
 npm run dev
 ```
 
-Buka <http://localhost:3000>. Database Docker diarahkan ke port host **5433** agar tidak bentrok dengan PostgreSQL lokal yang mungkin sudah memakai 5432. Ubah `DB_PORT`/`DATABASE_URL` bila perlu.
+Buka <http://localhost:3000>. Contoh environment memakai port database host **7482** (rentang 7000–9999 yang jarang dipakai) agar tidak bentrok dengan PostgreSQL lokal di 5432. Ubah `DB_PORT`/`DATABASE_URL` bila perlu.
 
-### Menjalankan seluruh stack dengan Docker
+### Deploy dengan Docker Compose (server)
+
+Prasyarat di server: Docker Engine 24+, plugin Compose v2, Git, dan disarankan reverse proxy HTTPS (nginx/Caddy). Seluruh perintah dijalankan dari root project (`cd waspadain`).
+
+**1. Ambil kode dan siapkan environment**
 
 ```bash
+git clone <URL_REPO> waspadain
+cd waspadain
 cp .env.docker.example .env.docker
-# isi AUTH_SECRET, POSTGRES_PASSWORD, APP_URL (Resend opsional, boleh kosong)
+openssl rand -hex 32   # contoh nilai AUTH_SECRET
+openssl rand -hex 32   # contoh nilai POSTGRES_PASSWORD (harus URL-safe)
+```
+
+Edit `.env.docker`, lalu isi minimal:
+
+- `AUTH_SECRET` — hasil `openssl rand -hex 32`
+- `POSTGRES_PASSWORD` — hasil `openssl rand -hex 32`
+- `APP_URL` — URL publik, mis. `https://domain-anda.id`
+- `RESEND_API_KEY` dan `RESEND_FROM_EMAIL` — opsional, untuk reset kata sandi
+
+Jangan commit `.env.docker`. Default port host adalah `APP_PORT=7481` dan `DB_PORT=7482` (rentang 7000–9999 yang jarang dipakai). Port internal Next.js tetap `3000`; database hanya di-bind ke `127.0.0.1` sehingga tidak terbuka ke publik.
+
+**2. Build dan jalankan**
+
+```bash
 docker compose --env-file .env.docker up -d --build
 ```
 
-Compose **tidak** membaca `.env.docker` secara otomatis, jadi flag `--env-file .env.docker` wajib disertakan di setiap perintah compose.
+Compose **tidak** membaca `.env.docker` otomatis. Agar perintah berikutnya lebih pendek, ekspor sekali per sesi shell:
 
-`APP_HOST`/`APP_PORT` mengatur alamat bind dan port host; port internal Next.js tetap `3000`. Contoh `APP_PORT=3100` membuat aplikasi tersedia di <http://localhost:3100>. Di belakang reverse proxy pada host yang sama, set `APP_HOST=127.0.0.1` agar aplikasi tidak terbuka langsung ke jaringan. Database hanya di-bind ke `127.0.0.1` sehingga tidak terekspos ke publik.
+```bash
+export COMPOSE_ENV_FILES=.env.docker
+docker compose up -d --build
+```
 
-Container aplikasi otomatis menjalankan `prisma migrate deploy` dan seed **katalog** saja. Tidak ada akun demo atau admin otomatis di production. Health check container memakai `GET /api/health` yang juga memverifikasi koneksi database; cek status dengan `docker compose --env-file .env.docker ps`.
+**3. Verifikasi**
 
-Catatan operasional:
+```bash
+docker compose --env-file .env.docker ps
+curl -fsS http://127.0.0.1:7481/api/health
+docker compose --env-file .env.docker logs -f app
+```
 
-- **Gunakan password DB yang URL-safe** (mis. `openssl rand -hex 32`). Password berisi `@ : / % #` merusak `DATABASE_URL`; jika perlu, gunakan `docker-compose.override.yml` untuk mengisi `DATABASE_URL` penuh (contoh ada di `.env.docker.example`).
-- **Password DB hanya berlaku saat volume dibuat.** Mengubah `POSTGRES_PASSWORD` setelah volume ada tidak mengubah password di dalam PostgreSQL dan membuat app gagal dengan error `P1000`. Untuk instalasi baru, hapus volume dengan `docker compose --env-file .env.docker down -v` (menghapus semua data) sebelum start ulang.
-- **Produksi wajib HTTPS.** Cookie sesi memakai prefix `__Host-` + `Secure`, jadi login tidak akan tersimpan bila diakses lewat `http://IP:3000`. Pasang reverse proxy (nginx/Caddy) dengan sertifikat, dan teruskan header `Host` serta `X-Forwarded-Proto` agar validasi origin aplikasi lolos.
-- Log container dibatasi `10 MB × 3` per service. Lihat log dengan `docker compose --env-file .env.docker logs -f app`.
+Container aplikasi otomatis menjalankan `prisma migrate deploy` dan seed **katalog** saja. Tidak ada akun demo atau admin otomatis di production. Health check memakai `GET /api/health` yang juga memverifikasi koneksi database.
 
-Contoh blok nginx minimal (sesuaikan domain dan path sertifikat):
+**Perintah operasional harian**
+
+```bash
+# Status & log
+docker compose --env-file .env.docker ps
+docker compose --env-file .env.docker logs -f app
+docker compose --env-file .env.docker logs -f db
+
+# Restart tanpa rebuild
+docker compose --env-file .env.docker restart app
+
+# Stop (data tetap tersimpan)
+docker compose --env-file .env.docker stop
+docker compose --env-file .env.docker start
+
+# Hapus container & network (volume database tetap)
+docker compose --env-file .env.docker down
+
+# Hapus SEMUA termasuk data database (hati-hati)
+docker compose --env-file .env.docker down -v
+```
+
+**Update dari GitHub**
+
+```bash
+cd waspadain
+git pull --ff-only
+docker compose --env-file .env.docker up -d --build
+docker compose --env-file .env.docker ps
+docker image prune -f
+```
+
+`up -d --build` membangun image baru dan mengganti container aplikasi; migrasi database berjalan otomatis saat boot. Untuk rollback kode, checkout commit sebelumnya lalu jalankan perintah yang sama. Migrasi Prisma tidak otomatis dibalik, jadi uji perubahan skema di staging sebelum production.
+
+**Membuat / merotasi kredensial admin**
+
+```bash
+# Admin baru (interaktif, kata sandi tidak ditampilkan)
+docker compose --env-file .env.docker run --rm app npm run admin:create
+
+# Non-interaktif, mis. untuk provisioning
+docker compose --env-file .env.docker run --rm \
+  -e ADMIN_EMAIL=admin@domain-anda.id \
+  -e ADMIN_PASSWORD='kata-sandi-awal-kuat' \
+  app npm run admin:create
+
+# Rotasi kata sandi admin yang sudah ada + cabut semua sesi
+docker compose --env-file .env.docker run --rm \
+  -e ADMIN_EMAIL=admin@domain-anda.id \
+  -e ADMIN_PASSWORD='kata-sandi-baru-yang-kuat' \
+  app npm run admin:reset
+```
+
+Kata sandi di-hash bcrypt (cost 12), tidak pernah disimpan sebagai teks asli, dan akun admin baru wajib mengganti kata sandi pada login pertama. Hapus `ADMIN_PASSWORD` dari environment setelah provisioning.
+
+**Reset semua akun (termasuk admin)**
+
+Perintah ini menulis backup JSON ke volume `waspadain_backups` sebelum menghapus seluruh akun. Katalog skenario dan modul tetap utuh.
+
+```bash
+# Pratinjau jumlah akun tanpa menghapus
+docker compose --env-file .env.docker exec app npm run accounts:reset -- --dry-run
+
+# Hapus semua akun; wajib memakai --yes
+docker compose --env-file .env.docker exec app npm run accounts:reset -- --yes
+
+# Salin backup dari container ke host
+docker compose --env-file .env.docker cp app:/app/backups ./backups
+```
+
+Setelah reset, buat admin baru dengan perintah `admin:create` di atas. Untuk instalasi lokal (tanpa Docker): `npm run accounts:reset -- --yes`.
+
+**Uji Resend dari terminal server**
+
+```bash
+docker compose --env-file .env.docker run --rm \
+  app npm run email:test -- alamat-anda@domain.id
+```
+
+Perintah ini memakai `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, dan `APP_URL` yang sama dengan aplikasi. Keluar dengan kode non-zero bila Resend menolak permintaan. Tanpa argumen, alamat tujuan diambil dari `RESEND_TEST_TO` di `.env.docker`. Untuk pratinjau konfigurasi tanpa mengirim email, tambahkan `--dry-run`.
+
+**Contoh reverse proxy nginx**
 
 ```nginx
 server {
@@ -72,7 +178,7 @@ server {
   ssl_certificate_key /etc/letsencrypt/live/domain-anda.id/privkey.pem;
 
   location / {
-    proxy_pass http://127.0.0.1:3000;
+    proxy_pass http://127.0.0.1:7481;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -82,33 +188,15 @@ server {
 }
 ```
 
-### Bootstrap administrator
+Di belakang reverse proxy pada host yang sama, set `APP_HOST=127.0.0.1` di `.env.docker` agar aplikasi hanya menerima koneksi dari proxy.
 
-Akun admin tidak dibuat oleh seed. Buat satu kali secara eksplisit:
+Catatan operasional:
 
-```bash
-# Interaktif (kata sandi tidak ditampilkan)
-npm run admin:create
-
-# Atau lewat environment sementara
-ADMIN_EMAIL="admin@waspadain.id" ADMIN_PASSWORD="kata-sandi-awal-kuat" npm run admin:create
-```
-
-Ketentuan:
-- Kata sandi di-hash bcrypt (cost 12); tidak pernah disimpan sebagai teks asli.
-- Script tidak menimpa kata sandi admin yang sudah ada.
-- Akun baru wajib mengganti kata sandi pada login pertama (diarahkan ke `/ubah-sandi`).
-- Hapus `ADMIN_PASSWORD` dari environment setelah provisioning.
-- Tidak ada endpoint publik untuk membuat admin.
-
-Untuk Docker:
-
-```bash
-docker compose --env-file .env.docker run --rm \
-  -e ADMIN_EMAIL=admin@waspadain.id \
-  -e ADMIN_PASSWORD='kata-sandi-awal-kuat' \
-  app npm run admin:create
-```
+- **Gunakan password DB yang URL-safe** (mis. `openssl rand -hex 32`). Password berisi `@ : / % #` merusak `DATABASE_URL`; jika perlu, gunakan `docker-compose.override.yml` untuk mengisi `DATABASE_URL` penuh.
+- **Password DB hanya berlaku saat volume dibuat.** Mengubah `POSTGRES_PASSWORD` setelah volume ada tidak mengubah password di dalam PostgreSQL dan membuat app gagal dengan error `P1000`. Untuk instalasi baru, hapus volume dengan `docker compose --env-file .env.docker down -v` (menghapus semua data) sebelum start ulang.
+- **Produksi wajib HTTPS.** Cookie sesi memakai prefix `__Host-` + `Secure`, jadi login tidak akan tersimpan bila diakses lewat `http://IP:7481`. Pasang reverse proxy dengan sertifikat, dan teruskan header `Host` serta `X-Forwarded-Proto` agar validasi origin aplikasi lolos.
+- Log container dibatasi `10 MB × 3` per service.
+- Backup JSON hasil reset akun tersimpan di volume `waspadain_backups`; salin ke host secara berkala.
 
 ### Data demo (hanya development)
 
@@ -127,6 +215,24 @@ npm run cleanup:demo -- --include-admin # ikut hapus admin demo lama (hati-hati)
 npm run cleanup:demo -- --dry-run       # pratinjau tanpa menghapus
 ```
 
+Perintah akun dan email untuk instalasi lokal:
+
+```bash
+# Rotasi kata sandi admin yang sudah ada + cabut semua sesi
+ADMIN_EMAIL="admin@waspadain.id" ADMIN_PASSWORD="kata-sandi-baru" npm run admin:reset
+
+# Hapus semua akun termasuk admin (backup JSON di backups/)
+npm run accounts:reset -- --yes
+npm run accounts:reset -- --yes --dry-run
+
+# Uji konfigurasi Resend
+npm run email:test -- alamat-anda@domain.id
+npm run email:test -- --to alamat-anda@domain.id --dry-run
+
+# Kembalikan data demo setelah reset
+SEED_DEMO_DATA=true DEMO_PASSWORD='kata-sandi-demo' npm run db:seed:demo
+```
+
 ## Perintah penting
 
 ```bash
@@ -143,6 +249,9 @@ npm run db:seed:demo    # data demo (dev/test, butuh SEED_DEMO_DATA=true)
 npm run db:studio       # Prisma Studio
 npm run admin:create    # bootstrap admin (interaktif atau env)
 npm run admin:bootstrap # alias bootstrap admin
+npm run admin:reset     # rotasi kata sandi admin + cabut sesi
+npm run accounts:reset  # hapus semua akun termasuk admin (butuh --yes)
+npm run email:test      # kirim email uji Resend dari terminal
 npm run cleanup:demo    # hapus akun demo/test + backup JSON
 npm run test:unit       # unit test Node test runner + tsx
 npm run test:phase2     # integrasi keamanan/idempotensi (butuh server)
@@ -234,15 +343,17 @@ Screenshot uji disimpan di `/tmp/opencode/waspadain-shots`.
 
 | Variabel | Wajib | Keterangan |
 | --- | --- | --- |
-| `DATABASE_URL` | Ya | PostgreSQL, mis. `postgresql://user:pass@host:5433/waspadain?schema=public` |
+| `DATABASE_URL` | Ya | PostgreSQL, mis. `postgresql://user:pass@host:7482/waspadain?schema=public` |
 | `AUTH_SECRET` | Ya | ≥16 karakter di dev; ≥32 karakter acak di produksi |
 | `APP_URL` | Produksi | URL publik http(s), dipakai untuk tautan reset password |
 | `POSTGRES_USER/PASSWORD/DB` | Docker | Kredensial container database |
-| `DB_PORT` | Tidak | Port loopback host untuk database (default `5433`) |
+| `DB_PORT` | Tidak | Port loopback host untuk database (default `7482`) |
 | `APP_HOST` | Docker | Alamat bind host aplikasi (default `0.0.0.0`; pakai `127.0.0.1` di belakang reverse proxy) |
-| `APP_PORT` | Docker | Port host aplikasi (default `3000`; internal tetap `3000`) |
+| `APP_PORT` | Docker | Port host aplikasi (default `7481`; internal tetap `3000`) |
+| `TZ` | Tidak | Zona waktu container (default `Asia/Jakarta`) |
 | `RESEND_API_KEY` | Tidak | Aktifkan pengiriman email reset |
 | `RESEND_FROM_EMAIL` | Tidak | Pengirim terverifikasi di Resend (mis. `WASPADAIN <admin@domain-anda.id>`) |
+| `RESEND_TEST_TO` | Tidak | Tujuan default `npm run email:test` tanpa argumen |
 | `SEED_DEMO_DATA` | Tidak | `true` hanya untuk `db:seed:demo` di dev/test |
 
 `AUTH_SECRET` produksi harus dibuat dengan `openssl rand -hex 32` atau setara. Jangan memakai nilai di `.env.example`.
@@ -260,50 +371,70 @@ Email reset **tidak** aktif sampai Anda mengonfigurasinya. Tanpa konfigurasi, en
    RESEND_FROM_EMAIL="WASPADAIN <no-reply@domain-anda.id>"
    APP_URL="https://domain-anda.id"
    ```
-5. Restart aplikasi. Uji lewat `/lupa-password` dengan akun nyata milik Anda.
-6. Pastikan `APP_URL` sama persis dengan domain publik agar tautan reset valid.
+5. Restart aplikasi, lalu uji pengiriman dari terminal server sebelum mencoba alur lupa kata sandi:
+   ```bash
+   # Docker
+   docker compose --env-file .env.docker run --rm \
+     app npm run email:test -- alamat-anda@domain.id
 
-Jangan mengirim email massal dari lingkungan pengembangan, dan jangan memakai kredensial demo. Template email berada di `src/lib/email/templates/password-reset.ts`; layanan pengiriman di `src/lib/email/service.ts`.
+   # Tanpa Docker
+   npm run email:test -- alamat-anda@domain.id
+   ```
+6. Uji lewat `/lupa-password` dengan akun nyata milik Anda.
+7. Pastikan `APP_URL` sama persis dengan domain publik agar tautan reset valid.
+
+Script `email:test` memakai konfigurasi yang sama dengan aplikasi, menampilkan ID email dari Resend, dan keluar non-zero bila provider menolak. Gunakan `--from "Nama <no-reply@domain-anda.id>"` untuk mencoba pengirim terverifikasi lain tanpa mengubah `.env`. Jika muncul `403`/`invalid_from_address` atau pesan *not authorized to send emails from …*, domain pengirim belum terverifikasi di akun Resend milik API key tersebut atau API key dibatasi ke domain lain. Sebelum domain diverifikasi, pengirim `onboarding@resend.dev` hanya boleh mengirim ke email pemilik akun Resend; ini cukup untuk memastikan API key dan jaringan server bekerja:
+
+```bash
+npm run email:test -- --to email-pemilik-akun@example.com \
+  --from "WASPADAIN <onboarding@resend.dev>"
+```
+
+Pengiriman reset password memakai idempotency key turunan token agar retry tidak menggandakan email. Template email berada di `src/lib/email/templates/password-reset.ts`; layanan pengiriman di `src/lib/email/service.ts`.
+
+Jangan mengirim email massal dari lingkungan pengembangan, dan jangan memakai kredensial demo.
 
 ## Deployment produksi
 
-1. Siapkan PostgreSQL terkelola atau container dengan volume persisten. Jangan membuka port database ke publik.
-2. Set `DATABASE_URL`, `AUTH_SECRET`, `APP_URL`, dan variabel Resend (opsional). Akses HTTPS wajib karena cookie `Secure` dan HSTS.
-3. Jalankan migrasi:
+Jalur yang direkomendasikan adalah **Docker Compose** (lihat [Deploy dengan Docker Compose](#deploy-dengan-docker-compose-server) di atas): satu perintah `up -d --build` sudah mencakup build, migrasi, seed katalog, health check, dan restart policy.
+
+Jika aplikasi dijalankan tanpa Docker:
+
+1. Siapkan PostgreSQL 16 dengan volume persisten. Jangan membuka port database ke publik.
+2. Set `DATABASE_URL`, `AUTH_SECRET`, `APP_URL`, `NODE_ENV=production`, dan variabel Resend (opsional). Akses HTTPS wajib karena cookie `Secure` dan HSTS.
+3. Jalankan migrasi dan seed katalog:
    ```bash
    npx prisma migrate deploy
-   ```
-4. Seed katalog (aman diulang; tidak membuat akun):
-   ```bash
    NODE_ENV=production npm run db:seed:catalog
    ```
-5. Bootstrap admin (sekali, interaktif atau env sementara):
+4. Bootstrap admin:
    ```bash
-   npm run admin:create
+   ADMIN_EMAIL="admin@domain-anda.id" ADMIN_PASSWORD="kata-sandi-awal-kuat" npm run admin:create
    ```
-6. Build dan jalankan:
+5. Build dan jalankan:
    ```bash
    npm run build
    npm start
    ```
-   atau `docker compose up -d --build`.
-7. Verifikasi health dengan membuka `/` dan login. Log tidak boleh memuat token, kata sandi, atau detail database.
+6. Verifikasi `GET /api/health`, buka `/`, dan login. Log tidak boleh memuat token, kata sandi, atau detail database.
 
 ### Backup & restore PostgreSQL
 
 Backup logis (custom format, cocok untuk restore selektif):
 
 ```bash
-docker compose exec -T db pg_dump -U waspadain -Fc waspadain > waspadain-$(date +%F).dump
+docker compose --env-file .env.docker exec -T db sh -c \
+  'pg_dump -U "$POSTGRES_USER" -Fc "$POSTGRES_DB"' > waspadain-$(date +%F).dump
 ```
 
 Restore ke database kosong:
 
 ```bash
-docker compose exec -T db pg_restore -U waspadain -d waspadain --clean --if-exists < waspadain-2026-11-17.dump
+docker compose --env-file .env.docker exec -T db sh -c \
+  'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists' < waspadain-2026-11-17.dump
 ```
 
-Untuk produksi, jadwalkan `pg_dump` harian ke penyimpanan terenkripsi di luar host, simpan 7–30 hari, dan uji restore minimal sekali sebelum go-live. Uji restore ke database sementara, bukan ke database produksi.
+Untuk produksi, jadwalkan `pg_dump` harian ke penyimpanan terenkripsi di luar host, simpan 7–30 hari, dan uji restore minimal sekali sebelum go-live. Uji restore ke database sementara, bukan ke database produksi. Backup JSON dari `accounts:reset` berada di volume `waspadain_backups` dan bukan pengganti backup PostgreSQL.
 
 ## Arsitektur
 
@@ -335,7 +466,9 @@ prisma/
   migrations/
   seed.ts
 scripts/
-  create-admin.ts         # bootstrap admin aman (interaktif/env)
+  create-admin.ts         # bootstrap admin aman + rotasi kata sandi (--reset)
+  reset-all-accounts.ts   # hapus semua akun termasuk admin, backup JSON
+  test-email.ts           # uji pengiriman Resend dari terminal
   cleanup-demo-data.ts    # backup + hapus akun demo/test, verifikasi katalog
   seed-demo.ts (prisma/)  # data demo dev/test (butuh DEMO_PASSWORD)
   test-fixtures.ts        # akun fixture sementara untuk skrip uji

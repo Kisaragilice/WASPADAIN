@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
 import { Resend } from "resend";
 import { getEmailConfig } from "@/lib/email/config";
 import { passwordResetEmail } from "@/lib/email/templates/password-reset";
@@ -43,21 +44,33 @@ export async function sendPasswordResetEmail(input: {
 
   try {
     const resend = new Resend(config.apiKey);
-    const { error } = await resend.emails.send({
-      from: config.fromEmail,
-      to: input.to,
-      subject,
-      html,
-      text,
-    });
+    // A stable idempotency key derived from the token prevents duplicate
+    // deliveries when the request is retried, without storing the token itself.
+    const idempotencyKey = createHash("sha256")
+      .update(`password-reset:${input.token}`)
+      .digest("hex");
+    const { data, error } = await resend.emails.send(
+      {
+        from: config.fromEmail,
+        to: input.to,
+        subject,
+        html,
+        text,
+      },
+      { idempotencyKey },
+    );
     if (error) {
       // Log only provider metadata, never the token or the full reset URL.
       console.error("[email] Resend rejected password reset", {
         name: error.name,
+        message: error.message,
         statusCode: error.statusCode,
       });
       return { status: "failed", reason: error.name ?? "provider-error" };
     }
+    console.info("[email] password reset accepted by Resend", {
+      id: data?.id ?? null,
+    });
     return { status: "sent" };
   } catch (error) {
     console.error("[email] password reset delivery threw", {

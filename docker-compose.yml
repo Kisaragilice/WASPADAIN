@@ -1,11 +1,12 @@
 # WASPADAIN — stack produksi (PostgreSQL + Next.js)
 #
 #   cp .env.docker.example .env.docker
-#   # isi AUTH_SECRET, POSTGRES_PASSWORD, APP_URL
+#   # isi AUTH_SECRET, POSTGRES_PASSWORD, APP_URL (Resend opsional)
 #   docker compose --env-file .env.docker up -d --build
 #
 # Compose TIDAK membaca .env.docker secara otomatis. Selalu sertakan
-# --env-file .env.docker (atau salin nilainya ke .env jika lebih nyaman).
+# --env-file .env.docker pada setiap perintah compose. Port host default
+# memakai rentang 7000-9999 yang jarang dipakai (lihat .env.docker.example).
 name: waspadain
 
 services:
@@ -18,10 +19,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-waspadain}
       # Menghindari error "could not resize shared memory" saat query berat.
       POSTGRES_INITDB_ARGS: "--data-checksums"
+      TZ: ${TZ:-Asia/Jakarta}
     # Loopback only: database tidak pernah terbuka ke jaringan publik.
-    # Port host 5433 menghindari bentrok dengan PostgreSQL lokal di 5432.
+    # DB_PORT adalah port host (default 7482), bukan port internal Postgres.
     ports:
-      - "127.0.0.1:${DB_PORT:-5433}:5432"
+      - "127.0.0.1:${DB_PORT:-7482}:5432"
     volumes:
       - waspadain_pgdata:/var/lib/postgresql/data
     shm_size: "256mb"
@@ -37,6 +39,7 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+    stop_grace_period: 30s
     logging:
       driver: json-file
       options:
@@ -56,15 +59,27 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-waspadain}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-waspadain}?schema=public
       # Tanpa fallback publik: compose menolak start tanpa secret asli.
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET wajib diisi dengan nilai acak minimal 32 karakter}
-      APP_URL: ${APP_URL:-http://localhost:3000}
+      APP_URL: ${APP_URL:-http://localhost:7481}
       NODE_ENV: production
+      TZ: ${TZ:-Asia/Jakarta}
       # Opsional. Biarkan kosong bila email reset password tidak dipakai.
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
     ports:
       # Port internal Next.js selalu 3000. APP_HOST bisa diarahkan ke
       # 127.0.0.1 bila aplikasi berada di belakang reverse proxy.
-      - "${APP_HOST:-0.0.0.0}:${APP_PORT:-3000}:3000"
+      - "${APP_HOST:-0.0.0.0}:${APP_PORT:-7481}:3000"
+    # Backup JSON dari reset akun disimpan di volume agar tidak hilang saat
+    # container diganti. Salin dengan `docker compose cp app:/app/backups ./`.
+    volumes:
+      - waspadain_backups:/app/backups
+    # Aplikasi tidak butuh capability tambahan dan tidak berjalan as root.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=64m
     healthcheck:
       test:
         [
@@ -87,3 +102,4 @@ services:
 
 volumes:
   waspadain_pgdata:
+  waspadain_backups:
